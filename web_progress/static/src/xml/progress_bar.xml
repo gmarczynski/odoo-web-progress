@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+<t t-name="ProgressBar">
+    <div id="progress_frame" style="visibility:hidden">
+        <div id="progress_bar"/>
+    </div>
+    <button id="progress_cancel" style="visibility:hidden">Cancel</button>
+    <div class="oe_progress_message" style="color:white"/>
+</t>
+
+</templates>
