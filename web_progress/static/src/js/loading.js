@@ -62,7 +62,7 @@ Loading.include({
                 model: 'web.progress',
                 method: 'cancel_progress',
                 args: [progress_code]
-            }, {'shadow': true})
+            }, {'shadow': true}).then(function() {})
     },
     add_progress: function(fct_name, params, progress_code) {
         var self = this;

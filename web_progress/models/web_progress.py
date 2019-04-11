@@ -56,7 +56,7 @@ class WebProgress(models.TransientModel):
         else:
             progress_id = self.env[self._name]
         # check progress of parent operations
-        if progress_id.recur_depth:
+        if recur_depth is None and progress_id.recur_depth:
             for parent_depth in range(progress_id.recur_depth):
                 result += self.get_progress(code, recur_depth=parent_depth)
         progress_vals = {
