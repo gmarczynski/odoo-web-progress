@@ -7,12 +7,14 @@ odoo.define('web.progress.bar', function (require) {
 
 var core = require('web.core');
 var Widget = require('web.Widget');
-var session = require('web.session');
+var progress_loading = require('web.progress.loading');
 var framework = require('web.framework');
 
 var _t = core._t;
+var progress_timeout = progress_loading.progress_timeout;
 var framework_blockUI = framework.blockUI;
 var framework_unblockUI = framework.unblockUI;
+
 
 var ProgressBar = Widget.extend({
     template: "ProgressBar",
@@ -27,14 +29,15 @@ var ProgressBar = Widget.extend({
         var progress_code = -1;
         var cancellable = true;
         _.each(progress_list, function(el) {
-            if (el.msg) {
-                progress_html += "<div>" + _t("Progress") + " " +
-                    el.progress + "%" + " (" + el.done + "/" + el.total + ")" + " " + el.msg + "</div>"
-            }
+            var message = el.msg || "";
+            progress_html += "<div>" + _t("Progress") + " " +
+                el.progress + "%" + " (" + el.done + "/" + el.total + ")" + " " + message + "</div>"
             if (el.progress && el.total) {
                 progress += el.progress * progress_total / 100;
             }
-            progress_total /= el.total;
+            if (el.total) {
+                progress_total /= el.total;
+            }
             progress_code = el.code;
             cancellable = cancellable && el.cancellable;
             });
@@ -47,7 +50,7 @@ var ProgressBar = Widget.extend({
         } else {
             self.$("#progress_cancel").remove();
         }
-        self.$("#progress_bar").animate({width: progress + '%'}, 2100);
+        self.$("#progress_bar").animate({width: progress + '%'}, progress_timeout / 2);
         if (progress_html) {
             self.$(".oe_progress_message").html(progress_html);
         }

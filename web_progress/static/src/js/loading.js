@@ -9,6 +9,7 @@ var core = require('web.core');
 var Loading = require('web.Loading');
 
 var _t = core._t;
+var progress_timeout = 5000;
 
 Loading.include({
 
@@ -37,8 +38,8 @@ Loading.include({
             }, {'shadow': true}).then(function (result_list) {
                 console.debug(result_list);
                 if (result_list.length > 0) {
-                    var result = result_list[result_list.length - 1];
-                    if (result.state === 'ongoing' && result.msg) {
+                    var result = result_list[0];
+                    if (['ongoing', 'done'].indexOf(result.state) >= 0) {
                         core.bus.trigger('rpc_progress', result_list)
                     }
                     if (progress_code in self.progress_timers) {
@@ -46,15 +47,14 @@ Loading.include({
                             if ('progress' in self) {
                                 self.progress(fct_name, params, progress_code)
                             }
-                        }, 2000);
+                        }, progress_timeout);
                     }
                 }
         })
     },
     move_to_background: function() {
         this.count = 0;
-        // this.on_rpc_event(0);
-        core.action_registry.get('reload')()
+        // TODO: add move to background
     },
     cancel_progress: function(progress_code) {
         var self = this;
@@ -72,7 +72,7 @@ Loading.include({
                 if ('progress' in self) {
                     self.progress(fct_name, params, progress_code)
                 }
-            }, 2000);
+            }, progress_timeout);
         }
     },
     remove_progress: function(progress_code) {
@@ -83,6 +83,9 @@ Loading.include({
     }
 });
 
-return Loading;
+return {
+    Loading: Loading,
+    progress_timeout: progress_timeout,
+};
 });
 
