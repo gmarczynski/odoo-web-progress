@@ -7,7 +7,7 @@ odoo.define('web.progress.ajax', function (require) {
 
 var core = require('web.core');
 var ajax = require('web.ajax');
-var Widget = require('web.Widget');
+var ServicesMixin = require('web.ServicesMixin');
 
 var ajax_jsonRpc = ajax.jsonRpc;
 var ajax_jsonpRpc = ajax.jsonpRpc;
@@ -18,7 +18,7 @@ function pseudo_uuid(a){
     return a?(a^Math.random()*16>>a/4).toString(16):([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,pseudo_uuid)
 }
 
-var RelayRequest = Widget.extend({
+var RelayRequest = core.Class.extend(ServicesMixin, {
     init: function (url, fct_name, params, progress_code) {
         this._super(parent);
         core.bus.on('rpc_request', this, function () {
@@ -30,16 +30,16 @@ var RelayRequest = Widget.extend({
     }
 });
 
-var RelayResult = Widget.extend({
+var RelayResult = core.Class.extend(ServicesMixin, {
     init: function () {
         this._super(parent);
         core.bus.on('rpc:result', this, function (data, result) {
-                var progress_code = -1;
+            var progress_code = -1;
             if ('kwargs' in data.params && 'context' in data.params.kwargs
-                    && 'progress_code' in data.params.kwargs.context) {
+                && 'progress_code' in data.params.kwargs.context) {
                 progress_code = data.params.kwargs.context.progress_code;
-            } else if ('args' in data.params) {
-                progress_code = data.params.args[data.params.args.length-1]['progress_code'];
+            } else if ('args' in data.params && data.params.args.length > 0) {
+                progress_code = data.params.args[data.params.args.length - 1]['progress_code'];
             }
             if (progress_code in progress_codes) {
                 delete progress_codes[progress_code];
@@ -53,17 +53,20 @@ var relay_result = new RelayResult();
 
 function genericRelayEvents(url, fct_name, params) {
     if (url.startsWith('/web/dataset/') && fct_name === 'call' && params.model !== 'web.progress') {
+        var relay = false;
         var progress_code = pseudo_uuid();
         if ('kwargs' in params) {
             if ('context' in params.kwargs) {
                 params.kwargs.context['progress_code'] = progress_code;
-            } else {
-                params.kwargs['context'] = {progress_code: progress_code};
+                relay = true;
             }
-        } else if ('args' in params) {
-            params.args[params.args.length-1]['progress_code'] = progress_code;
+        } else if ('args' in params && params.args.length > 0) {
+            params.args[params.args.length - 1]['progress_code'] = progress_code;
+            relay = true;
         }
-        progress_codes[progress_code] =  new RelayRequest(url, fct_name, params, progress_code);
+        if (relay) {
+            progress_codes[progress_code] = new RelayRequest(url, fct_name, params, progress_code);
+        }
     }
     return params;
 }
@@ -91,6 +94,12 @@ ajax.rpc = rpc;
 return {
     jsonRpc: jsonRpc,
     jsonpRpc: jsonpRpc,
+    rpc: rpc,
+    RelayRequest: RelayRequest,
+    RelayResult: RelayResult,
+    genericRelayEvents: genericRelayEvents,
+    relay_result: relay_result,
+    pseudo_uuid: pseudo_uuid,
 }
 });
 
