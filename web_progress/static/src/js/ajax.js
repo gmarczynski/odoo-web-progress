@@ -7,7 +7,7 @@ odoo.define('web.progress.ajax', function (require) {
 
 var core = require('web.core');
 var ajax = require('web.ajax');
-var ServicesMixin = require('web.ServicesMixin');
+var mixins = require('web.mixins');
 
 var ajax_jsonRpc = ajax.jsonRpc;
 var ajax_jsonpRpc = ajax.jsonpRpc;
@@ -18,9 +18,9 @@ function pseudo_uuid(a){
     return a?(a^Math.random()*16>>a/4).toString(16):([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,pseudo_uuid)
 }
 
-var RelayRequest = core.Class.extend(ServicesMixin, {
+var RelayRequest = core.Class.extend(mixins.EventDispatcherMixin, {
     init: function (url, fct_name, params, progress_code) {
-        this._super(parent);
+        mixins.EventDispatcherMixin.init.call(this);
         core.bus.on('rpc_request', this, function () {
             if (url.startsWith('/web/dataset/') && fct_name === 'call' && params.model !== 'web.progress') {
                 core.bus.trigger('rpc_progress_request', fct_name, params, progress_code);
@@ -30,9 +30,9 @@ var RelayRequest = core.Class.extend(ServicesMixin, {
     }
 });
 
-var RelayResult = core.Class.extend(ServicesMixin, {
+var RelayResult = core.Class.extend(mixins.EventDispatcherMixin, {
     init: function () {
-        this._super(parent);
+        mixins.EventDispatcherMixin.init.call(this);
         core.bus.on('rpc:result', this, function (data, result) {
             var progress_code = -1;
             if ('kwargs' in data.params && 'context' in data.params.kwargs
