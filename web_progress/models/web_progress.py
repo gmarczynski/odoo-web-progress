@@ -1,18 +1,31 @@
 from odoo import models, api, registry, fields, _
+from odoo.exceptions import UserError
 from multiprocessing import RLock
+from datetime import datetime, timedelta
+import threading
 import logging
 
 _logger = logging.getLogger(__name__)
 lock = RLock()
 
+
 class WebProgress(models.TransientModel):
     _name = 'web.progress'
     _description = "Operation Progress"
     _transient_max_hours = 0.5
+    # store recursion depth for every operation
+    _recur_depths = {}
+    # track time between progress reports
+    _last_progress = {}
+    # min time between progress reports (in seconds)
+    _progress_period_min_secs = 0
+    # max time between progress reports (in seconds)
+    _progress_period_max_secs = 10
+    assert _progress_period_min_secs <= _progress_period_max_secs
 
     name = fields.Char("Message")
-    code = fields.Char("Code", required=True)
-    recur_depth = fields.Integer("Recursion depth")
+    code = fields.Char("Code", required=True, index=True)
+    recur_depth = fields.Integer("Recursion depth", index=True)
     progress = fields.Integer("Progress")
     done = fields.Integer("Done")
     total = fields.Integer("Total")
@@ -74,11 +87,53 @@ class WebProgress(models.TransientModel):
         return result
 
     #
-    # Called by backend
+    # Protected members called by backend
+    # Do not call them directly
     #
 
     @api.model
-    def record_progress(self, vals):
+    def _report_progress(self, data, msg='', total=None, cancellable=True, log_level="info"):
+        """
+        Progress reporting generator
+        :param data: collection / generator to iterate onto
+        :param msg: msg to mass in progress report
+        :param total: provide total directly to avoid calling len on data (which fails on generators)
+        :param cancellable: indicates whether the operation is cancellable
+        :param log_level: log level to use when logging progress
+        :return: yields every element of iteration
+        """
+        thread_id = threading.get_ident()
+        # web progress_code typically comes from web client in call context
+        code = self.env.context.get('progress_code') or str(thread_id)
+        with lock:
+            recur_depth = self._recur_depths.get(code, 0)
+            if recur_depth:
+                self._recur_depths[code] += 1
+            else:
+                self._recur_depths[code] = 1
+
+        if total is None:
+            total = len(data)
+        try:
+            for num, rec in zip(range(total), data):
+                self._report_progress_do_percent(code, num, total, msg, recur_depth, cancellable, log_level)
+                yield rec
+        finally:
+            # finally record progress as finished
+            self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
+            with lock:
+                self._recur_depths[code] -= 1
+                if not self._recur_depths[code]:
+                    del self._recur_depths[code]
+
+    @api.model
+    def _create_progress(self, vals):
+        """
+        Create a web progress record
+        Creation uses a fresh cursor, i.e. outside the current transaction scope
+        :param vals: creation vals
+        :return: None
+        """
         with api.Environment.manage():
             with registry(self.env.cr.dbname).cursor() as new_cr:
                 # Create a new environment with new cursor database
@@ -89,7 +144,7 @@ class WebProgress(models.TransientModel):
                 new_env.cr.commit()
 
     @api.model
-    def check_cancelled(self, code):
+    def _check_cancelled(self, code):
         """
         Chack if operation was not cancelled by the user.
         The check is executed using a fresh cursor, i.e., it looks outside the current transaction scope
@@ -107,3 +162,76 @@ class WebProgress(models.TransientModel):
                                               ])
                 if cancel:
                     return True
+        return False
+
+    def _report_progress_do_percent(self, code, num, total, msg, recur_depth, cancellable=True, log_level="debug"):
+        """
+        Progress reporting function
+        At the moment this only logs the progress.
+        :param num: how much items processed
+        :param total: total of items to process
+        :param msg: message for progress report
+        :param recur_depth: recursion depth
+        :param cancellable: indicates whether the operation is cancellable
+        :return: None
+        """
+        if total <= 1:
+            # do not report progress for empty or unitary collections
+            return
+        # check the time from last progress report
+        precise_code = code + '##' + str(recur_depth)
+        last_progress = self._last_progress.get(precise_code,
+                                                (datetime.now() - timedelta(seconds=self._progress_period_max_secs)))
+        time_now = datetime.now()
+        period_sec = (time_now - last_progress).total_seconds()
+        # respect min report progress time
+        if period_sec < self._progress_period_min_secs:
+            return
+        if total <= 200:
+            # if less than 200 elements, report every 10%
+            step = 10
+        else:
+            # otherwise report every 1%
+            step = 1
+        one_per = int(total / (100 / step)) or 1
+        # report progress after max period and on every step
+        # the first progress 0 will always be reported
+        if period_sec >= self._progress_period_max_secs or 1 == one_per or 0 == (num % one_per):
+            if cancellable and self._check_cancelled(code):
+                raise UserError(_("Operation has been cancelled by the user."))
+            percent = round(100 * num / total, 2)
+            self._report_progress_store(code, percent, num, total, msg,
+                                        recur_depth=recur_depth, cancellable=cancellable, log_level=log_level)
+            self._last_progress[precise_code] = time_now
+
+    def _report_progress_store(self, code, percent, num, total, msg, state='ongoing',
+                               recur_depth=0, cancellable=True, log_level="debug"):
+        """
+        Progress storing function. Stores progress in log and in db.
+        :param code: progress operation code
+        :param percent: done percent
+        :param num: done units
+        :param total: total units
+        :param msg: logging message
+        :param recur_depth: recursion depth
+        :param cancellable: indicates whether the operation is cancellable
+        :param state: state of progress: ongoing or done
+        """
+        log_message = "Progress %s%% (%s/%s)%s" % (percent, num, total, msg and (' %s.' % msg) or '')
+        if hasattr(_logger, log_level):
+            logger_cmd = getattr(_logger, log_level)
+        else:
+            logger_cmd = _logger.info
+        logger_cmd((">" * (recur_depth + 1)) + " " + log_message)
+        vals = {
+            'name': msg,
+            'code': code,
+            'recur_depth': recur_depth,
+            'progress': percent,
+            'done': num,
+            'total': total,
+            'state': state,
+            'cancellable': cancellable,
+        }
+        self._create_progress(vals)
+
