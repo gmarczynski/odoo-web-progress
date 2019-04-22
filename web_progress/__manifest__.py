@@ -23,6 +23,7 @@
 
     'qweb': [
         'static/src/xml/progress_bar.xml',
+        'static/src/xml/web_progress_menu.xml',
         ],
 
     'demo': [

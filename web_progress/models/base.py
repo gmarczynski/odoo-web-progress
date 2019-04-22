@@ -38,8 +38,11 @@ class Base(models.AbstractModel):
         Add progress reporting to collection used in bas_import.import
         It adds progress reporting to all standard imports and additionally makes them cancellable
         """
-        total = len(data)
         extracted = super(Base, self)._extract_records(fields_, data, log=log)
-        return self.report_progress_iter(extracted, _("importing to {}").
-                                         format(self._description.lower()), total=total, cancellable=True,
-                                         log_level="debug")
+        if 'progress_code' in self._context:
+            total = len(data)
+            return self.report_progress_iter(extracted, _("importing to {}").
+                                             format(self._description.lower()), total=total, cancellable=True,
+                                             log_level="debug")
+        else:
+            return extracted
