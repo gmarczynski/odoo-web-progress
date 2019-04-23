@@ -76,11 +76,19 @@ var ProgressMenu = Widget.extend({
      */
     _updateProgressPreview: function () {
         var self = this;
-        self._getProgressData().then(function (){
+        self._getProgressData().then(function (data){
             var html = QWeb.render('web_progress.ProgressMenuPreview', {
                 progress_data : self.progress_data
             });
             self.$progresses_preview.html(html);
+            _.forEach(self.progress_data, function (el){
+                if (el.cancellable) {
+                    self.$('button#' + el.code).css("visibility", 'visible');
+                    self.$('button#' + el.code).one('click', function () {
+                        core.bus.trigger('rpc_progress_cancel', el.code);
+                    });
+                }
+            })
         });
     },
     /**

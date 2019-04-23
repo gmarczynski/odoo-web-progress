@@ -43,12 +43,13 @@ var ProgressBar = Widget.extend({
             });
         self.$("#progress_frame").css("visibility", 'visible');
         if (cancellable) {
-            self.$("#progress_cancel").css("visibility", 'visible');
-            self.$("#progress_cancel").one('click', function () {
+            self.$("button#progress_cancel").css("visibility", 'visible');
+            self.$("button#progress_cancel").remove();
+            self.$("button#progress_cancel").one('click', function () {
                 core.bus.trigger('rpc_progress_cancel', progress_code);
             });
         } else {
-            self.$("#progress_cancel").remove();
+            self.$("button#progress_cancel").remove();
         }
         self.$("#progress_bar").animate({width: progress + '%'}, progress_timeout / 2);
         if (progress_html) {

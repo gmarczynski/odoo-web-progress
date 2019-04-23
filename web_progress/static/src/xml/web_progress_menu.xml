@@ -23,15 +23,15 @@
                 <div class="o_channel_info">
                     <div class="o_channel_title">
                         <span class="o_channel_name">
-                            <t t-esc="progress.msg"/>&amp;nbsp;
+                            &amp;nbsp;<t t-esc="progress.msg"/>&amp;nbsp;
                         </span>
                         <span class="o_channel_counter">
                             <t t-esc="progress.progress"/>%&amp;nbsp;
                         </span>
                         <span class="o_last_message_date">
-                            <t t-esc="progress.done"/>/<t t-esc="progress.total"/>
+                            <t t-esc="progress.done"/>/<t t-esc="progress.total"/>&amp;nbsp;
                         </span>
-                        <button class="fa fa-square" id="progress_cancel"/>
+                        <button class="fa fa-square progress_cancel_button" t-att-id="progress.code" style="visibility:hidden"/>
                     </div>
                 </div>
             </div>
