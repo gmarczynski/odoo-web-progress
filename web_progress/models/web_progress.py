@@ -86,6 +86,27 @@ class WebProgress(models.TransientModel):
 
         return result
 
+    @api.model
+    def get_all_ongoing_progress(self):
+        query = """
+        SELECT DISTINCT
+        FIRST_VALUE(CASE WHEN state = 'ongoing' AND done != total THEN id END) 
+            OVER (PARTITION BY code ORDER BY create_date DESC) AS id
+        FROM web_progress
+        WHERE recur_depth = 0
+        """
+        self.env.cr.execute(query)
+        result = self.env.cr.fetchall()
+        progress_ids = self.browse([r[0] for r in result if r[0]])
+        return [{'msg': progress_id.name,
+                 'code': progress_id.code,
+                 'progress': progress_id.progress,
+                 'done': progress_id.done,
+                 'total': progress_id.total,
+                 'state': progress_id.state,
+                 'cancellable': progress_id.cancellable,
+                 } for progress_id in progress_ids]
+
     #
     # Protected members called by backend
     # Do not call them directly
