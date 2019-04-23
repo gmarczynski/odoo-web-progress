@@ -34,6 +34,7 @@ class WebProgress(models.TransientModel):
                               ('cancel', "Cancelled"),
                               ], "State")
     cancellable = fields.Boolean("Cancellable")
+    user_id = fields.Many2one('res.users', "User")
 
     #
     # Called by web client
@@ -80,6 +81,7 @@ class WebProgress(models.TransientModel):
             'total': progress_id.total,
             'state': progress_id.state,
             'cancellable': progress_id.cancellable,
+            'uid': progress_id.user_id,
         }
         # register this operation progress
         result.append(progress_vals)
@@ -93,8 +95,9 @@ class WebProgress(models.TransientModel):
         FIRST_VALUE(CASE WHEN state = 'ongoing' AND done != total THEN id END) 
             OVER (PARTITION BY code ORDER BY create_date DESC) AS id
         FROM web_progress
-        WHERE recur_depth = 0
-        """
+        WHERE recur_depth = 0 {user_id}
+        """.format(user_id=self.env.user.id != 1 and "AND user_id = {}".format(self.env.user.id) or '')
+        # _logger.info(query)
         self.env.cr.execute(query)
         result = self.env.cr.fetchall()
         progress_ids = self.browse([r[0] for r in result if r[0]])
@@ -105,6 +108,7 @@ class WebProgress(models.TransientModel):
                  'total': progress_id.total,
                  'state': progress_id.state,
                  'cancellable': progress_id.cancellable,
+                 'uid': progress_id.user_id,
                  } for progress_id in progress_ids]
 
     #
@@ -253,6 +257,7 @@ class WebProgress(models.TransientModel):
             'total': total,
             'state': state,
             'cancellable': cancellable,
+            'user_id': self.env.user.id,
         }
         self._create_progress(vals)
 
