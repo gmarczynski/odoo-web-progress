@@ -6,14 +6,30 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-10 20:21+0000\n"
-"PO-Revision-Date: 2019-04-10 20:21+0000\n"
+"POT-Creation-Date: 2019-04-23 21:37+0000\n"
+"PO-Revision-Date: 2019-04-23 21:37+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: web_progress
+#. openerp-web
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:29
+#, python-format
+msgid "%&nbsp;"
+msgstr "%&nbsp;"
+
+#. module: web_progress
+#. openerp-web
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:25
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:26
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:32
+#, python-format
+msgid "&nbsp;"
+msgstr "&nbsp;"
 
 #. module: web_progress
 #. openerp-web
@@ -84,6 +100,13 @@ msgid "Message"
 msgstr "Message"
 
 #. module: web_progress
+#. openerp-web
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:18
+#, python-format
+msgid "No operations in progress."
+msgstr "Aucune opération en cours."
+
+#. module: web_progress
 #: selection:web.progress,state:0
 msgid "Ongoing"
 msgstr "En cours"
@@ -95,6 +118,7 @@ msgstr "Avancement de l'opération"
 
 #. module: web_progress
 #: code:addons/web_progress/models/base.py:76
+#: code:addons/web_progress/models/web_progress.py:222
 #, python-format
 msgid "Operation has been cancelled by the user."
 msgstr "L'opération a été annulée par l'utilisateur."
@@ -102,6 +126,8 @@ msgstr "L'opération a été annulée par l'utilisateur."
 #. module: web_progress
 #. openerp-web
 #: code:addons/web_progress/static/src/js/progress_bar.js:31
+#: code:addons/web_progress/static/src/js/progress_bar.js:33
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:6
 #: model:ir.model.fields,field_description:web_progress.field_web_progress_progress
 #, python-format
 msgid "Progress"
@@ -123,7 +149,8 @@ msgid "Total"
 msgstr "Total"
 
 #. module: web_progress
-#: code:addons/web_progress/models/base.py:128
+#: code:addons/web_progress/models/base.py:44
+#: code:addons/web_progress/models/base.py:133
 #, python-format
 msgid "importing to {}"
 msgstr "l'importation à {}"
