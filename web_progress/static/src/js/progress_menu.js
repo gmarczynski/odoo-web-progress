@@ -7,6 +7,7 @@ var SystrayMenu = require('web.SystrayMenu');
 var Widget = require('web.Widget');
 
 var QWeb = core.qweb;
+var progress_timeout = 10000;
 
 /**
  * Progress menu item in the systray part of the navbar
@@ -18,6 +19,7 @@ var ProgressMenu = Widget.extend({
         // "click .o_progress_preview": "_onProgressFilterClick",
     },
     start: function () {
+        this.progress_timer = false;
         this.$progresses_preview = this.$('.o_progress_navbar_dropdown_channels');
         // chat_manager.is_ready.then(this._updateCounterPlus.bind(this));
         this._updateProgressPreview();
@@ -35,11 +37,11 @@ var ProgressMenu = Widget.extend({
 
         return self._rpc({
             model: 'web.progress',
-            method: 'get_all_ongoing_progress',
+            method: 'get_all_progress',
             kwargs: {
                 context: session.user_context,
             },
-        }).then(function (data) {
+        },{'shadow': true}).then(function (data) {
             self.progress_data = data;
             self.progressCounter = data.length;
             self.$('.o_notification_counter').text(self.progressCounter);
@@ -88,7 +90,13 @@ var ProgressMenu = Widget.extend({
                         core.bus.trigger('rpc_progress_cancel', el.code);
                     });
                 }
-            })
+            });
+            if (!self.progress_timer) {
+                self.progress_timer = setTimeout(function () {
+                    self.progress_timer = false;
+                    self._updateProgressPreview();
+                }, progress_timeout);
+            }
         });
     },
     /**

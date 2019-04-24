@@ -91,7 +91,10 @@ class WebProgress(models.TransientModel):
         return result
 
     @api.model
-    def get_all_ongoing_progress(self):
+    def get_all_progress(self):
+        """
+        Get information about all ongoing progress
+        """
         query = """
         SELECT DISTINCT
         FIRST_VALUE(CASE WHEN state = 'ongoing' AND done != total THEN id END) 
@@ -228,7 +231,7 @@ class WebProgress(models.TransientModel):
         if period_sec >= self._progress_period_max_secs or 1 == one_per or 0 == (num % one_per):
             user_id = self._check_cancelled(code)
             if cancellable and user_id:
-                raise UserError(_("Operation has been cancelled by ") + " " + user_id.name)
+                raise UserError(_("Operation has been cancelled by") + " " + user_id.name)
             percent = round(100 * num / total, 2)
             self._report_progress_store(code, percent, num, total, msg,
                                         recur_depth=recur_depth, cancellable=cancellable, log_level=log_level)
