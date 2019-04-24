@@ -106,7 +106,7 @@ class WebProgress(models.TransientModel):
         # _logger.info(query)
         self.env.cr.execute(query)
         result = self.env.cr.fetchall()
-        progress_ids = self.browse([r[0] for r in result if r[0]])
+        progress_ids = self.browse([r[0] for r in result if r[0]]).sorted('code')
         return [{'msg': progress_id.name,
                  'code': progress_id.code,
                  'progress': progress_id.progress,
