@@ -120,8 +120,8 @@ msgstr "Avancement de l'opération"
 #: code:addons/web_progress/models/base.py:76
 #: code:addons/web_progress/models/web_progress.py:222
 #, python-format
-msgid "Operation has been cancelled by the user."
-msgstr "L'opération a été annulée par l'utilisateur."
+msgid "Operation has been cancelled by user"
+msgstr "L'opération a été annulée par l'utilisateur"
 
 #. module: web_progress
 #. openerp-web

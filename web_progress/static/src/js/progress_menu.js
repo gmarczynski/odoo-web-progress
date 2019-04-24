@@ -83,8 +83,8 @@ var ProgressMenu = Widget.extend({
             self.$progresses_preview.html(html);
             _.forEach(self.progress_data, function (el){
                 if (el.cancellable) {
-                    self.$('button#' + el.code).css("visibility", 'visible');
-                    self.$('button#' + el.code).one('click', function () {
+                    self.$('#' + el.code).css("visibility", 'visible');
+                    self.$('#' + el.code).one('click', function () {
                         core.bus.trigger('rpc_progress_cancel', el.code);
                     });
                 }

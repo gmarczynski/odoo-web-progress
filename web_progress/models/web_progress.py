@@ -1,4 +1,4 @@
-from odoo import models, api, registry, fields, _
+from odoo import models, api, registry, fields, _, SUPERUSER_ID
 from odoo.exceptions import UserError
 from multiprocessing import RLock
 from datetime import datetime, timedelta
@@ -25,7 +25,7 @@ class WebProgress(models.TransientModel):
 
     name = fields.Char("Message")
     code = fields.Char("Code", required=True, index=True)
-    recur_depth = fields.Integer("Recursion depth", index=True)
+    recur_depth = fields.Integer("Recursion depth", index=True, default=0)
     progress = fields.Integer("Progress")
     done = fields.Integer("Done")
     total = fields.Integer("Total")
@@ -49,8 +49,10 @@ class WebProgress(models.TransientModel):
         vals = {
             'code': code,
             'state': 'cancel',
+            'user_id': self.env.user.id,
         }
-        self.create(vals)
+        _logger.info('Cancelling progress {}'.format(code))
+        self._create_progress(vals)
 
     @api.model
     def get_progress(self, code=None, recur_depth=None):
@@ -96,7 +98,8 @@ class WebProgress(models.TransientModel):
             OVER (PARTITION BY code ORDER BY create_date DESC) AS id
         FROM web_progress
         WHERE recur_depth = 0 {user_id}
-        """.format(user_id=self.env.user.id != 1 and "AND user_id = {}".format(self.env.user.id) or '')
+        """.format(user_id=self.env.user.id != SUPERUSER_ID and "AND user_id = {}".format(self.env.user.id) or '')
+        # superuser has right to see (and cancel) progress of everybody
         # _logger.info(query)
         self.env.cr.execute(query)
         result = self.env.cr.fetchall()
@@ -164,29 +167,30 @@ class WebProgress(models.TransientModel):
                 # Create a new environment with new cursor database
                 new_env = api.Environment(new_cr, self.env.uid, self.env.context)
                 # with_env replace original env for this method
-                progress_obj = self.with_env(new_env).env['web.progress']
+                progress_obj = self.with_env(new_env)
                 progress_obj.create(vals)  # isolated transaction to commit
                 new_env.cr.commit()
 
     @api.model
     def _check_cancelled(self, code):
         """
-        Chack if operation was not cancelled by the user.
+        Check if operation was not cancelled by the user.
         The check is executed using a fresh cursor, i.e., it looks outside the current transaction scope
         :param code: web progress code
-        :return: (boolean) whether an operation was cancelled
+        :return: (recordset) res.users of the user that cancelled the operation
         """
         with api.Environment.manage():
             with registry(self.env.cr.dbname).cursor() as new_cr:
-                # Create a new environment with new cursor database
-                new_env = api.Environment(new_cr, self.env.uid, self.env.context)
-                # with_env replace original env for this method
-                progress_obj = self.with_env(new_env)
-                cancel = progress_obj.search([('code', '=', code),
-                                              ('state', '=', 'cancel'),
-                                              ])
-                if cancel:
-                    return True
+                # use new cursor to check for cancel
+                query = """
+                SELECT user_id FROM web_progress
+                WHERE code = %s AND state = 'cancel' AND recur_depth = 0 
+                    AND (user_id = %s or user_id = %s)
+                """
+                new_cr.execute(query, (code, self.env.user.id, SUPERUSER_ID))
+                result = new_cr.fetchall()
+                if result:
+                    return self.user_id.browse(result[0])
         return False
 
     def _report_progress_do_percent(self, code, num, total, msg, recur_depth, cancellable=True, log_level="debug"):
@@ -222,8 +226,9 @@ class WebProgress(models.TransientModel):
         # report progress after max period and on every step
         # the first progress 0 will always be reported
         if period_sec >= self._progress_period_max_secs or 1 == one_per or 0 == (num % one_per):
-            if cancellable and self._check_cancelled(code):
-                raise UserError(_("Operation has been cancelled by the user."))
+            user_id = self._check_cancelled(code)
+            if cancellable and user_id:
+                raise UserError(_("Operation has been cancelled by ") + " " + user_id.name)
             percent = round(100 * num / total, 2)
             self._report_progress_store(code, percent, num, total, msg,
                                         recur_depth=recur_depth, cancellable=cancellable, log_level=log_level)
