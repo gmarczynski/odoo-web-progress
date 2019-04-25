@@ -151,7 +151,8 @@ class WebProgress(models.TransientModel):
                 yield rec
         finally:
             # finally record progress as finished
-            self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
+            if total > 1:
+                self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
             with lock:
                 self._recur_depths[code] -= 1
                 if not self._recur_depths[code]:
@@ -228,7 +229,7 @@ class WebProgress(models.TransientModel):
         one_per = int(total / (100 / step)) or 1
         # report progress after max period and on every step
         # the first progress 0 will always be reported
-        if period_sec >= self._progress_period_max_secs or 1 == one_per or 0 == (num % one_per):
+        if period_sec >= self._progress_period_max_secs: # or 1 == one_per or 0 == (num % one_per):
             user_id = self._check_cancelled(code)
             if cancellable and user_id:
                 raise UserError(_("Operation has been cancelled by") + " " + user_id.name)

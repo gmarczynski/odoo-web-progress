@@ -29,7 +29,7 @@ Loading.include({
         }
         this._super();
     },
-    progress: function(fct_name, params, progress_code) {
+    progress: function(progress_code) {
         var self = this;
         this._rpc({
                 model: 'web.progress',
@@ -45,7 +45,7 @@ Loading.include({
                     if (progress_code in self.progress_timers) {
                         self.progress_timers[progress_code] = setTimeout(function () {
                             if ('progress' in self) {
-                                self.progress(fct_name, params, progress_code)
+                                self.progress(progress_code)
                             }
                         }, progress_timeout);
                     }
@@ -64,16 +64,13 @@ Loading.include({
                 args: [progress_code]
             }, {'shadow': true}).then(function() {})
     },
-    add_progress: function(fct_name, params, progress_code) {
+    add_progress: function(progress_code) {
         var self = this;
-        // console.debug([fct_name, params, progress_code]);
-        if (fct_name === 'call' && 'args' in params && params.model !== 'web.progress') {
-            this.progress_timers[progress_code] = setTimeout(function () {
-                if ('progress' in self) {
-                    self.progress(fct_name, params, progress_code)
-                }
-            }, progress_timeout);
-        }
+        this.progress_timers[progress_code] = setTimeout(function () {
+            if ('progress' in self) {
+                self.progress(progress_code)
+            }
+        }, progress_timeout);
     },
     remove_progress: function(progress_code) {
         if (progress_code in this.progress_timers) {

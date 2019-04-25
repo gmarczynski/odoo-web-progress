@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-23 21:37+0000\n"
-"PO-Revision-Date: 2019-04-23 21:37+0000\n"
+"POT-Creation-Date: 2019-04-25 22:10+0000\n"
+"PO-Revision-Date: 2019-04-25 22:10+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -80,6 +80,18 @@ msgid "ID"
 msgstr "Identifiant"
 
 #. module: web_progress
+#: code:addons/web_progress/models/base.py:75
+#, python-format
+msgid "Importing to model {}"
+msgstr "Importation au modèle {}"
+
+#. module: web_progress
+#: code:addons/web_progress/models/base.py:64
+#, python-format
+msgid "Iterating on model {}"
+msgstr "Itération sur modèle {}"
+
+#. module: web_progress
 #: model:ir.model.fields,field_description:web_progress.field_web_progress___last_update
 msgid "Last Modified on"
 msgstr "Dernière modification le"
@@ -117,11 +129,10 @@ msgid "Operation Progress"
 msgstr "Avancement de l'opération"
 
 #. module: web_progress
-#: code:addons/web_progress/models/base.py:76
-#: code:addons/web_progress/models/web_progress.py:222
+#: code:addons/web_progress/models/web_progress.py:235
 #, python-format
-msgid "Operation has been cancelled by user"
-msgstr "L'opération a été annulée par l'utilisateur"
+msgid "Operation has been cancelled by"
+msgstr "L'opération a été annulée par"
 
 #. module: web_progress
 #. openerp-web
@@ -139,6 +150,11 @@ msgid "Recursion depth"
 msgstr "Profondeur de récursion"
 
 #. module: web_progress
+#: model:ir.model,name:web_progress.model_ir_cron
+msgid "Scheduled Actions"
+msgstr "Actions planifiées"
+
+#. module: web_progress
 #: model:ir.model.fields,field_description:web_progress.field_web_progress_state
 msgid "State"
 msgstr "Status"
@@ -146,11 +162,10 @@ msgstr "Status"
 #. module: web_progress
 #: model:ir.model.fields,field_description:web_progress.field_web_progress_total
 msgid "Total"
-msgstr "Total"
+msgstr "Totale"
 
 #. module: web_progress
-#: code:addons/web_progress/models/base.py:44
-#: code:addons/web_progress/models/base.py:133
-#, python-format
-msgid "importing to {}"
-msgstr "l'importation à {}"
+#: model:ir.model.fields,field_description:web_progress.field_web_progress_user_id
+msgid "User"
+msgstr "Utilisateur"
+
