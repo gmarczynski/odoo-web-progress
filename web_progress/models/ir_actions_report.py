@@ -12,3 +12,4 @@ class IrActionsReport(models.Model):
         """
         if 'progress_code' in self._context:
             return super(IrActionsReport, self.with_context(progress_iter=True)).render_qweb_html(docids, data=data)
+        return super(IrActionsReport, self).render_qweb_html(docids, data=data)

@@ -86,3 +86,4 @@ class Base(models.AbstractModel):
         if 'progress_code' in self._context:
             return super(Base, self.with_context(progress_iter=True)).\
                 _export_rows(fields, batch_invalidate=batch_invalidate)
+        return super(Base, self)._export_rows(fields, batch_invalidate=batch_invalidate)
