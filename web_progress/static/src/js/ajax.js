@@ -61,7 +61,7 @@ function validateCall(url, fct_name, params, settings) {
 function findContext(params) {
     var ret = false;
     if ('context' in params) {
-            ret = params.context['progress_code'];
+            ret = params.context;
         } else if ('kwargs' in params) {
             if ('context' in params.kwargs) {
                 ret = params.kwargs.context;
