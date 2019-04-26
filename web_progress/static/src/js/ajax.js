@@ -111,13 +111,17 @@ function get_file(options) {
     if (options.data && options.data.data) {
         var data = JSON.parse(options.data.data);
         var context = data.context;
+        if (!context && Array.isArray(data)) {
+            data.push({});
+            context = data[data.length - 1];
+        }
         if (complete && context) {
             var progress_code = pseudoUuid();
             context['progress_code'] = progress_code;
             options.complete = function () {
                 core.bus.trigger('rpc_progress_result', progress_code);
                 complete();
-            }
+            };
             core.bus.trigger('rpc_progress_request', progress_code);
             options.data.data = JSON.stringify(data)
         }
