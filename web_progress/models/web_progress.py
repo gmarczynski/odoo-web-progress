@@ -57,7 +57,7 @@ class WebProgress(models.TransientModel):
     @api.model
     def get_progress(self, code=None, recur_depth=None):
         """
-        Get progress for given code or model or model and res_ids
+        Get progress for given code
         :param code: web progress code
         :param recur_depth: recursion depth
         """
@@ -93,7 +93,7 @@ class WebProgress(models.TransientModel):
     @api.model
     def get_all_progress(self):
         """
-        Get information about all ongoing progress
+        Get progress information for all ongoing operations
         """
         query = """
         SELECT DISTINCT
@@ -133,30 +133,43 @@ class WebProgress(models.TransientModel):
         :param log_level: log level to use when logging progress
         :return: yields every element of iteration
         """
-        thread_id = threading.get_ident()
+        if total is None:
+            total = len(data)
+        if total <= 1:
+            # report progress only if there is more than 1 element in data
+            return data
+
         # web progress_code typically comes from web client in call context
-        code = self.env.context.get('progress_code') or str(thread_id)
+        code = self.env.context.get('progress_code')
         with lock:
-            recur_depth = self._recur_depths.get(code, 0)
+            recur_depth = self._get_recur_depth(code)
             if recur_depth:
                 self._recur_depths[code] += 1
             else:
                 self._recur_depths[code] = 1
 
-        if total is None:
-            total = len(data)
         try:
             for num, rec in zip(range(total), data):
                 self._report_progress_do_percent(code, num, total, msg, recur_depth, cancellable, log_level)
                 yield rec
         finally:
             # finally record progress as finished
-            if total > 1:
-                self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
+            self._report_progress_done(code, total, msg, recur_depth, cancellable, log_level)
             with lock:
                 self._recur_depths[code] -= 1
                 if not self._recur_depths[code]:
                     del self._recur_depths[code]
+
+    @api.model
+    def _get_recur_depth(self, code):
+        """
+        Get current recursion depth
+        :param code: web progress code
+        :return: current recursion depth
+        """
+        with lock:
+            recur_depth = self._recur_depths.get(code, 0)
+        return recur_depth
 
     @api.model
     def _create_progress(self, vals):
@@ -208,9 +221,6 @@ class WebProgress(models.TransientModel):
         :param cancellable: indicates whether the operation is cancellable
         :return: None
         """
-        if total <= 1:
-            # do not report progress for empty or unitary collections
-            return
         # check the time from last progress report
         precise_code = code + '##' + str(recur_depth)
         last_progress = self._last_progress.get(precise_code,
@@ -220,16 +230,9 @@ class WebProgress(models.TransientModel):
         # respect min report progress time
         if period_sec < self._progress_period_min_secs:
             return
-        if total <= 200:
-            # if less than 200 elements, report every 10%
-            step = 10
-        else:
-            # otherwise report every 1%
-            step = 1
-        one_per = int(total / (100 / step)) or 1
         # report progress after max period and on every step
         # the first progress 0 will always be reported
-        if period_sec >= self._progress_period_max_secs: # or 1 == one_per or 0 == (num % one_per):
+        if period_sec >= self._progress_period_max_secs:
             user_id = self._check_cancelled(code)
             if cancellable and user_id:
                 raise UserError(_("Operation has been cancelled by") + " " + user_id.name)
@@ -237,6 +240,18 @@ class WebProgress(models.TransientModel):
             self._report_progress_store(code, percent, num, total, msg,
                                         recur_depth=recur_depth, cancellable=cancellable, log_level=log_level)
             self._last_progress[precise_code] = time_now
+
+    def _report_progress_done(self, code, total, msg, recur_depth=0, cancellable=True, log_level="debug"):
+        """
+        Report progress as done.
+        :param code: progress operation code
+        :param total: total units
+        :param msg: logging message
+        :param recur_depth: recursion depth
+        :param cancellable: indicates whether the operation is cancellable
+        :return:
+        """
+        return self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
 
     def _report_progress_store(self, code, percent, num, total, msg, state='ongoing',
                                recur_depth=0, cancellable=True, log_level="debug"):

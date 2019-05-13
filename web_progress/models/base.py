@@ -3,8 +3,6 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-models_iter = models.BaseModel.__iter__
-
 
 class GeneratorWithLenIndexable(object):
     """
@@ -33,9 +31,36 @@ class Base(models.AbstractModel):
     #
 
     @api.model
+    def report_progress_percent(self, percent, msg='', cancellable=True, log_level="info"):
+        """
+        Report progress of an ongoing operation identified by progress_code in context.
+        :param percent: progress in percent
+        :param msg: progress message
+        :param cancellable: indicates whether the operation is cancellable
+        :param log_level: log level to use when logging progress
+        :return: None
+        """
+        code = self.env.context.get('progress_code')
+        if not code:
+            return
+        web_progress_obj = self.env['web.progress']
+        percent = max(min(percent, 100), 0)
+        recur_depth = web_progress_obj._get_recur_depth(code)
+        if percent >= 100:
+            web_progress_obj._report_progress_done(code, 100, msg, recur_depth, cancellable, log_level)
+        else:
+            web_progress_obj._report_progress_do_percent(code=code,
+                                                         num=percent,
+                                                         total=100,
+                                                         msg=msg,
+                                                         recur_depth=recur_depth,
+                                                         cancellable=cancellable,
+                                                         log_level=log_level)
+
+    @api.model
     def report_progress_iter(self, data, msg='', total=None, cancellable=True, log_level="info"):
         """
-        Progress reporting generator
+        Progress reporting generator of an ongoing operation identified by progress_code in context.
         :param data: collection / generator to iterate onto
         :param msg: msg to mass in progress report
         :param total: provide total directly to avoid calling len on data (which fails on generators)
@@ -68,7 +93,7 @@ class Base(models.AbstractModel):
     @api.model
     def _extract_records(self, fields_, data, log=lambda a: None):
         """
-        Add progress reporting to collection used in bas_import.import
+        Add progress reporting to collection used in base_import.import
         It adds progress reporting to all standard imports and additionally makes them cancellable
         """
         if 'progress_code' in self._context:
