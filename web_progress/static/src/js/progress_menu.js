@@ -16,12 +16,10 @@ var ProgressMenu = Widget.extend({
     template:'web_progress.ProgressMenu',
     events: {
         "click": "_onProgressMenuClick",
-        // "click .o_progress_preview": "_onProgressFilterClick",
     },
     start: function () {
         this.progress_timer = false;
         this.$progresses_preview = this.$('.o_progress_navbar_dropdown_channels');
-        // chat_manager.is_ready.then(this._updateCounterPlus.bind(this));
         this._updateProgressPreview();
         return this._super();
     },
