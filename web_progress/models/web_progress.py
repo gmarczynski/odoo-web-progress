@@ -107,9 +107,23 @@ class WebProgress(models.TransientModel):
         self.env.cr.execute(query)
         result = self.env.cr.fetchall()
         progress_ids = self.browse([r[0] for r in result if r[0]]).sorted('code')
+        # compute real progress when there are recursive progress calls
+        progress_real = {}
+        for progress_id in progress_ids:
+            progress = 0
+            progress_total = 100
+            deep_progress_list = progress_id.get_progress(progress_id.code)
+            if len(deep_progress_list) <= 1:
+                progress = progress_id.progress
+            for el in deep_progress_list:
+                if el['progress'] and el['total']:
+                    progress += el['progress'] * progress_total / 100
+                if el['total']:
+                    progress_total /= el['total']
+            progress_real[progress_id.code] = round(progress, 0)
         return [{'msg': progress_id.name,
                  'code': progress_id.code,
-                 'progress': progress_id.progress,
+                 'progress': progress_real[progress_id.code],
                  'done': progress_id.done,
                  'total': progress_id.total,
                  'state': progress_id.state,
