@@ -96,19 +96,21 @@ class Base(models.AbstractModel):
         Add progress reporting to collection used in base_import.import
         It adds progress reporting to all standard imports and additionally makes them cancellable
         """
+        ret = super(Base, self)._extract_records(fields_, data, log=log)
         if 'progress_code' in self._context:
-            data = self.report_progress_iter(data, _("Importing to model {}").
+            return self.report_progress_iter(ret, _("Importing to model {}").
                                              format(self._description), cancellable=True,
+                                             total=len(data),
                                              log_level="debug")
-        return super(Base, self)._extract_records(fields_, data, log=log)
+        return ret
 
 
     @api.multi
-    def _export_rows(self, fields, batch_invalidate=True):
+    def _export_rows(self, fields, *args, _is_toplevel_call=True):
         """
         Add progress_iter to the context in order to track progress of iterations inside exporting method
         """
         if 'progress_code' in self._context:
             return super(Base, self.with_context(progress_iter=True)).\
-                _export_rows(fields, batch_invalidate=batch_invalidate)
-        return super(Base, self)._export_rows(fields, batch_invalidate=batch_invalidate)
+                _export_rows(fields, *args, _is_toplevel_call=_is_toplevel_call)
+        return super(Base, self)._export_rows(fields, *args, _is_toplevel_call=_is_toplevel_call)
