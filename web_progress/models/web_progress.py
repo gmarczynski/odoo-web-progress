@@ -150,8 +150,10 @@ class WebProgress(models.TransientModel):
         if total is None:
             total = len(data)
         if total <= 1:
-            # report progress only if there is more than 1 element in data
-            return data
+            # skip report progress if there is zero or 1 element in data
+            for rec in data:
+                yield rec
+            return
 
         # web progress_code typically comes from web client in call context
         code = self.env.context.get('progress_code')
