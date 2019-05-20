@@ -83,7 +83,7 @@ class WebProgress(models.TransientModel):
             'total': progress_id.total,
             'state': progress_id.state,
             'cancellable': progress_id.cancellable,
-            'uid': progress_id.user_id,
+            'uid': progress_id.user_id.id,
         }
         # register this operation progress
         result.append(progress_vals)
@@ -115,11 +115,12 @@ class WebProgress(models.TransientModel):
             deep_progress_list = progress_id.get_progress(progress_id.code)
             if len(deep_progress_list) <= 1:
                 progress = progress_id.progress
-            for el in deep_progress_list:
-                if el['progress'] and el['total']:
-                    progress += el['progress'] * progress_total / 100
-                if el['total']:
-                    progress_total /= el['total']
+            else:
+                for el in deep_progress_list:
+                    if el['progress'] and el['total']:
+                        progress += el['progress'] * progress_total / 100
+                    if el['total']:
+                        progress_total /= el['total']
             progress_real[progress_id.code] = round(progress, 0)
         return [{'msg': progress_id.name,
                  'code': progress_id.code,
