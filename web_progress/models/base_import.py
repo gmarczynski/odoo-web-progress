@@ -14,7 +14,7 @@ class BaseImport(models.TransientModel):
         try:
             ret = super(BaseImport, self).do(fields, columns, options, dryrun=dryrun)
         except UserError as e:
-            ret = [{'type': 'warning', 'message': e.name}]
+            ret = {'messages': [{'record': False, 'type': 'warning', 'message': e.name, }]}
         except Exception:
             raise
         return ret
