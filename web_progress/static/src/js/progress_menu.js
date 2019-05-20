@@ -19,7 +19,7 @@ var ProgressMenu = Widget.extend({
     },
     start: function () {
         this.progress_timer = false;
-        this.$progresses_preview = this.$('.o_progress_navbar_dropdown_channels');
+        this.$progresses_preview = this.$('.o_mail_systray_dropdown_items');
         this._updateProgressPreview();
         return this._super();
     },
@@ -71,7 +71,7 @@ var ProgressMenu = Widget.extend({
         return this.$el.hasClass('open');
     },
     /**
-     * Update(render) progress system tray view on progress updation.
+     * Update(render) progress system tray view on progress update.
      * @private
      */
     _updateProgressPreview: function () {
