@@ -36,7 +36,7 @@ Loading.include({
                 method: 'get_progress',
                 args: [progress_code]
             }, {'shadow': true}).then(function (result_list) {
-                console.debug(result_list);
+                // console.debug(result_list);
                 if (result_list.length > 0) {
                     var result = result_list[0];
                     if (['ongoing', 'done'].indexOf(result.state) >= 0) {
