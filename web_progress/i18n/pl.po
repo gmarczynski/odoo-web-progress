@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-25 22:14+0000\n"
-"PO-Revision-Date: 2019-04-25 22:14+0000\n"
+"POT-Creation-Date: 2019-05-21 22:22+0000\n"
+"PO-Revision-Date: 2019-05-21 22:22+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -17,16 +17,16 @@ msgstr ""
 
 #. module: web_progress
 #. openerp-web
-#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:29
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:32
 #, python-format
 msgid "%&nbsp;"
 msgstr "%&nbsp;"
 
 #. module: web_progress
 #. openerp-web
-#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:25
-#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:26
-#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:32
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:28
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:29
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:35
 #, python-format
 msgid "&nbsp;"
 msgstr "&nbsp;"
@@ -80,13 +80,7 @@ msgid "ID"
 msgstr "ID"
 
 #. module: web_progress
-#: code:addons/web_progress/models/base.py:75
-#, python-format
-msgid "Importing to model {}"
-msgstr "Importowanie do modelu {}"
-
-#. module: web_progress
-#: code:addons/web_progress/models/base.py:64
+#: code:addons/web_progress/models/base.py:89
 #, python-format
 msgid "Iterating on model {}"
 msgstr "Iterowanie po modelu {}"
@@ -129,14 +123,13 @@ msgid "Operation Progress"
 msgstr "Postęp operacji"
 
 #. module: web_progress
-#: code:addons/web_progress/models/web_progress.py:235
+#: code:addons/web_progress/models/web_progress.py:255
 #, python-format
 msgid "Operation has been cancelled by"
 msgstr "Operacja została anulowana przez"
 
 #. module: web_progress
 #. openerp-web
-#: code:addons/web_progress/static/src/js/progress_bar.js:31
 #: code:addons/web_progress/static/src/js/progress_bar.js:33
 #: code:addons/web_progress/static/src/xml/web_progress_menu.xml:6
 #: model:ir.model.fields,field_description:web_progress.field_web_progress_progress
@@ -169,3 +162,14 @@ msgstr "Suma"
 msgid "User"
 msgstr "Użytkownik"
 
+#. module: web_progress
+#: code:addons/web_progress/models/base.py:119
+#, python-format
+msgid "batches of 1000 lines"
+msgstr "partii po 1000 linii"
+
+#. module: web_progress
+#: code:addons/web_progress/models/base.py:102
+#, python-format
+msgid "importing to {}"
+msgstr "importowanie do {}"

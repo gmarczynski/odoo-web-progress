@@ -5,7 +5,7 @@
     <div id="progress_frame" style="visibility:hidden">
         <div id="progress_bar"/>
     </div>
-    <button id="progress_cancel" style="visibility:hidden">Cancel</button>
+    <button class="btn btn-primary"  id="progress_cancel" style="visibility:hidden">Cancel</button>
     <div class="oe_progress_message" style="color:white"/>
 </t>
 

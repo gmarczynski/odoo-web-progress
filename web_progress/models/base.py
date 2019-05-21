@@ -31,7 +31,7 @@ class Base(models.AbstractModel):
     #
 
     @api.model
-    def report_progress_percent(self, percent, msg='', cancellable=True, log_level="info"):
+    def web_progress_percent(self, percent, msg='', cancellable=True, log_level="info"):
         """
         Report progress of an ongoing operation identified by progress_code in context.
         :param percent: progress in percent
@@ -58,7 +58,7 @@ class Base(models.AbstractModel):
                                                          log_level=log_level)
 
     @api.model
-    def report_progress_iter(self, data, msg='', total=None, cancellable=True, log_level="info"):
+    def web_progress_iter(self, data, msg='', total=None, cancellable=True, log_level="info"):
         """
         Progress reporting generator of an ongoing operation identified by progress_code in context.
         :param data: collection / generator to iterate onto
@@ -86,7 +86,7 @@ class Base(models.AbstractModel):
         """
         if self._context.get('progress_iter'):
             self = self.with_context(progress_iter=False)
-            return self.report_progress_iter(self, _("Iterating on model {}").format(self._description)).__iter__()
+            return self.web_progress_iter(self, _("Iterating on model {}").format(self._description)).__iter__()
         else:
             return super(Base, self).__iter__()
 
@@ -96,19 +96,33 @@ class Base(models.AbstractModel):
         Add progress reporting to collection used in base_import.import
         It adds progress reporting to all standard imports and additionally makes them cancellable
         """
+        extracted = super(Base, self)._extract_records(fields_, data, log=log)
         if 'progress_code' in self._context:
-            data = self.report_progress_iter(data, _("Importing to model {}").
-                                             format(self._description), cancellable=True,
+            total = len(data)
+            return self.report_progress_iter(extracted, _("importing to {}").
+                                             format(self._description.lower()), total=total, cancellable=True,
                                              log_level="debug")
-        return super(Base, self)._extract_records(fields_, data, log=log)
-
+        else:
+            return extracted
 
     @api.multi
     def _export_rows(self, fields, batch_invalidate=True):
         """
-        Add progress_iter to the context in order to track progress of iterations inside exporting method
+        Add progress reporting to base export (on batch-level)
         """
-        if 'progress_code' in self._context:
-            return super(Base, self.with_context(progress_iter=True)).\
-                _export_rows(fields, batch_invalidate=batch_invalidate)
+        if batch_invalidate and 'progress_code' in self._context:
+            def splittor(rs):
+                """ Splits the self recordset in batches of 1000 (to avoid
+                entire-recordset-prefetch-effects) & removes the previous batch
+                from the cache after it's been iterated in full
+                """
+                for idx in self.report_progress_iter(range(0, len(rs), 1000), _("batches of 1000 lines")):
+                    sub = rs[idx:idx + 1000]
+                    yield sub
+                    rs.invalidate_cache(ids=sub.ids)
+
+            ret = []
+            for sub in splittor(self):
+                ret += super(Base, sub)._export_rows(fields, batch_invalidate=False)
+            return ret
         return super(Base, self)._export_rows(fields, batch_invalidate=batch_invalidate)
