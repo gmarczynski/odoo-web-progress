@@ -20,6 +20,9 @@
         </t>
         <t t-foreach="progress_data" t-as="progress">
             <div class="o_mail_preview">
+                <div class="o_mail_preview_image o_mail_preview_app">
+                    <button class="btn fa fa-square progress_cancel_button" t-att-id="progress.code" style="visibility:hidden"/>
+                </div>
                 <div class="o_preview_info">
                     <div class="o_preview_title">
                         <span class="o_preview_name">
