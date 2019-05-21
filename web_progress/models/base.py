@@ -99,7 +99,7 @@ class Base(models.AbstractModel):
         extracted = super(Base, self)._extract_records(fields_, data, log=log)
         if 'progress_code' in self._context:
             total = len(data)
-            return self.report_progress_iter(extracted, _("importing to {}").
+            return self.web_progress_iter(extracted, _("importing to {}").
                                              format(self._description.lower()), total=total, cancellable=True,
                                              log_level="debug")
         else:
@@ -116,7 +116,7 @@ class Base(models.AbstractModel):
                 entire-recordset-prefetch-effects) & removes the previous batch
                 from the cache after it's been iterated in full
                 """
-                for idx in self.report_progress_iter(range(0, len(rs), 1000), _("batches of 1000 lines")):
+                for idx in self.web_progress_iter(range(0, len(rs), 1000), _("batches of 1000 lines")):
                     sub = rs[idx:idx + 1000]
                     yield sub
                     rs.invalidate_cache(ids=sub.ids)
