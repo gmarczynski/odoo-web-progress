@@ -6,7 +6,7 @@ Progress bar for Odoo waiting screen, possibility to cancel an ongoing operation
 
 .. class:: no-web
 
-    .. image:: https://raw.githubusercontent.com/grzes9898/odoo-web-progress/11.0/web_progress/static/description/progress_bar_loading.gif
+    .. image:: https://raw.githubusercontent.com/grzes9898/odoo-web-progress/12.0/web_progress/static/description/progress_bar_loading.gif
         :alt: Progress Bar
         :width: 100%
         :align: center
