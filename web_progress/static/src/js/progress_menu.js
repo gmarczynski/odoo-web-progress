@@ -1,3 +1,4 @@
+// Part of web_progress. See LICENSE file for full copyright and licensing details.
 odoo.define('web_progress.ProgressMenu', function (require) {
 "use strict";
 
