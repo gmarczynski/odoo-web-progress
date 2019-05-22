@@ -1,3 +1,4 @@
+// Part of web_progress. See LICENSE file for full copyright and licensing details.
 odoo.define('web.progress.loading', function (require) {
 "use strict";
 
