@@ -33,7 +33,7 @@ For developers
 
 Typically when your code executes any long-term operation there is a loop over a `collection` in your code.
 
-In order to report progress of the operation, wrap it with `self.web_progress_iter(collection, msg="Message")`
+In order to report progress of the operation, wrap the `collection` with `self.web_progress_iter(collection, msg="Message")`
 
 Say, your operation's main method looks as follows:
 
