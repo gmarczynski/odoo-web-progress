@@ -240,8 +240,10 @@ class WebProgress(models.TransientModel):
         """
         # check the time from last progress report
         precise_code = code + '##' + str(recur_depth)
-        last_progress = self._last_progress.get(precise_code,
-                                                (datetime.now() - timedelta(seconds=self._progress_period_max_secs)))
+        last_progress = self._last_progress.get(precise_code)
+        if not last_progress:
+            last_progress = (datetime.now() - timedelta(seconds=self._progress_period_max_secs + 1))
+            self._last_progress[precise_code] = last_progress
         time_now = datetime.now()
         period_sec = (time_now - last_progress).total_seconds()
         # respect min report progress time
@@ -268,7 +270,17 @@ class WebProgress(models.TransientModel):
         :param cancellable: indicates whether the operation is cancellable
         :return:
         """
-        return self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
+        ret = self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
+        # invalidate the last time for this code
+        precise_code = code + '##' + str(recur_depth)
+        if precise_code in self._last_progress:
+            del self._last_progress[precise_code]
+        # invalidate all parent codes to be sure that their next call is recorded
+        parent_codes = [code + '##' + str(d) for d in range(recur_depth)]
+        for parent_code in parent_codes:
+            if parent_code in self._last_progress:
+                del self._last_progress[parent_code]
+        return ret
 
     def _report_progress_store(self, code, percent, num, total, msg, state='ongoing',
                                recur_depth=0, cancellable=True, log_level="debug"):
