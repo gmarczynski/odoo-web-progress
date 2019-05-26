@@ -5,10 +5,10 @@
         Progress bar for operations that take more than 5 seconds.
     """,
 
-    'description': """
-    Adds dynamic progress bar and cancel button to gray waiting screen. 
-    Try to import some CSV file to any model to see it in action.
-    """,
+    # 'description': """
+    # Adds dynamic progress bar and cancel button to gray waiting screen.
+    # Try to import some CSV file to any model to see it in action.
+    # """,
 
     'author': "Grzegorz Marczyński",
     'category': 'UI',
