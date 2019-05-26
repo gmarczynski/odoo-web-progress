@@ -3,7 +3,6 @@ odoo.define('web_progress.ProgressMenu', function (require) {
 "use strict";
 
 var core = require('web.core');
-var bus = require('bus.bus').bus;
 var session = require('web.session');
 var SystrayMenu = require('web.SystrayMenu');
 var Widget = require('web.Widget');
@@ -22,28 +21,33 @@ var ProgressMenu = Widget.extend({
     },
     init: function(parent) {
         this._super(parent);
-        bus.add_channel(this.channel);
-        bus.start_polling();
+        this.call('bus_service', 'addChannel', this.channel);
+        this.call('bus_service', 'startPolling');
     },
     start: function () {
         this.progress_timer = false;
         this.$progresses_preview = this.$('.o_mail_systray_dropdown_items');
         this._updateProgressPreview();
-        bus.on('notification', this, function (notifications) {
-            var self = this;
-            _.each(notifications, function (notification) {
-                self._onNotification(notification);
-            });
-        });
+        this.call('bus_service', 'onNotification', this, this._onNotification);
         return this._super();
     },
 
     // Private
     /**
+     * Iterate bus notifications
+     * @private
+     */
+    _onNotification: function (notifications) {
+        var self = this;
+        _.each(notifications, function (notification) {
+            self._handleNotification(notification);
+        });
+    },
+    /**
      * On every bus notification schedule update of all progress and pass progress message to progress bar
      * @private
      */
-    _onNotification: function(notification){
+    _handleNotification: function(notification){
         if (this.channel && (notification[0] === this.channel)) {
             this._setTimerProgressPreview();
             var result = notification[1][0];
