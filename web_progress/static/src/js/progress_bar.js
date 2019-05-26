@@ -19,15 +19,24 @@ var framework_unblockUI = framework.unblockUI;
 
 var ProgressBar = Widget.extend({
     template: "ProgressBar",
-    init: function() {
+    progress_code: false,
+    init: function(parent) {
         this._super(parent);
-        core.bus.on('rpc_progress', this, this.show_progress);
+        core.bus.on('rpc_progress_set_code', this, this.defineProgressCode);
+        core.bus.on('rpc_progress', this, this.showProgress);
     },
-    show_progress: function(progress_list) {
+    defineProgressCode: function(progress_code) {
+        this.progress_code = progress_code;
+    },
+    showProgress: function(progress_list) {
+        var top_progress = progress_list[0];
+        var progress_code = top_progress.code;
+        if (this.progress_code !== progress_code) {
+            return;
+        }
         var progress_html = "";
         var progress = 0;
         var progress_total = 100;
-        var progress_code = -1;
         var cancellable = true;
         _.each(progress_list, function(el) {
             var message = el.msg || "";
@@ -39,7 +48,6 @@ var ProgressBar = Widget.extend({
             if (el.total) {
                 progress_total /= el.total;
             }
-            progress_code = el.code;
             cancellable = cancellable && el.cancellable;
             });
         self.$("#progress_frame").css("visibility", 'visible');
