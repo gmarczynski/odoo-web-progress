@@ -1,4 +1,4 @@
-![Progress Bar](https://raw.githubusercontent.com/grzes9898/odoo-web-progress/11.0/web_progress/static/description/progress_bar_loading.gif)
+![Progress Bar](https://raw.githubusercontent.com/grzes9898/odoo-web-progress/12.0/web_progress/static/description/progress_bar_loading.gif)
 
 # Odoo module web_progress
 
@@ -8,7 +8,7 @@ Progress bar for Odoo waiting screen, possibility to cancel an ongoing operation
 
 Author: Grzegorz Marczyński
 
-Licence: LGPL-3.
+License: LGPL-3.
 
 ## Features
 
@@ -17,7 +17,7 @@ Licence: LGPL-3.
 - support for all operations initiated through UI and executed by planned activities (cron)
 - generator-like method to simply add progress reporting to any iteration (support for sub-iterations)
 
-## For developpers
+## For developers
 
 Typically when your code executes any long-term operation there is a loop over a `collection` in your code.
 

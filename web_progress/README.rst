@@ -16,7 +16,7 @@ Progress bar for Odoo waiting screen, possibility to cancel an ongoing operation
 
 Author: Grzegorz Marczyński
 
-Licence: LGPL-3.
+License: LGPL-3.
 
 Copyright © 2019 Grzegorz Marczyński
 
