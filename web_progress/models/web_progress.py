@@ -18,11 +18,8 @@ class WebProgress(models.TransientModel):
     _recur_depths = {}
     # track time between progress reports
     _last_progress = {}
-    # min time between progress reports (in seconds)
-    _progress_period_min_secs = 0
-    # max time between progress reports (in seconds)
-    _progress_period_max_secs = 10
-    assert _progress_period_min_secs <= _progress_period_max_secs
+    # time between progress reports (in seconds)
+    _progress_period_secs = 5
 
     name = fields.Char("Message")
     code = fields.Char("Code", required=True, index=True)
@@ -204,6 +201,9 @@ class WebProgress(models.TransientModel):
                 # with_env replace original env for this method
                 progress_obj = self.with_env(new_env)
                 progress_obj.create(vals)  # isolated transaction to commit
+                # notify bus
+                progress_notif = progress_obj.get_progress(vals['code'])
+                new_env['bus.bus'].sendone('web_progress', progress_notif)
                 new_env.cr.commit()
 
     @api.model
@@ -241,16 +241,15 @@ class WebProgress(models.TransientModel):
         """
         # check the time from last progress report
         precise_code = code + '##' + str(recur_depth)
-        last_progress = self._last_progress.get(precise_code,
-                                                (datetime.now() - timedelta(seconds=self._progress_period_max_secs)))
+        last_progress = self._last_progress.get(precise_code)
+        if not last_progress:
+            last_progress = (datetime.now() - timedelta(seconds=self._progress_period_secs + 1))
+            self._last_progress[precise_code] = last_progress
         time_now = datetime.now()
         period_sec = (time_now - last_progress).total_seconds()
-        # respect min report progress time
-        if period_sec < self._progress_period_min_secs:
-            return
         # report progress after max period and on every step
         # the first progress 0 will always be reported
-        if period_sec >= self._progress_period_max_secs:
+        if period_sec >= self._progress_period_secs:
             user_id = self._check_cancelled(code)
             if cancellable and user_id:
                 raise UserError(_("Operation has been cancelled by") + " " + user_id.name)
@@ -269,7 +268,17 @@ class WebProgress(models.TransientModel):
         :param cancellable: indicates whether the operation is cancellable
         :return:
         """
-        return self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
+        ret = self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
+        # invalidate the last time for this code
+        precise_code = code + '##' + str(recur_depth)
+        if precise_code in self._last_progress:
+            del self._last_progress[precise_code]
+        # invalidate all parent codes to be sure that their next call is recorded
+        parent_codes = [code + '##' + str(d) for d in range(recur_depth)]
+        for parent_code in parent_codes:
+            if parent_code in self._last_progress:
+                del self._last_progress[parent_code]
+        return ret
 
     def _report_progress_store(self, code, percent, num, total, msg, state='ongoing',
                                recur_depth=0, cancellable=True, log_level="debug"):

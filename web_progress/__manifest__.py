@@ -15,7 +15,9 @@
 
     'version': '1.0',
 
-    'depends': ['web'],
+    'depends': ['web',
+                'bus',
+                ],
 
     'data': [
         'views/templates.xml',
