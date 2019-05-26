@@ -48,9 +48,7 @@ Loading.include({
                     }
                     if (progress_code in self.progress_timers) {
                         self.progress_timers[progress_code] = setTimeout(function () {
-                            if ('progress' in self) {
-                                self.getProgressViaRPC(progress_code)
-                            }
+                            self.getProgressViaRPC(progress_code)
                         }, progress_timeout);
                     }
                 }
@@ -71,12 +69,9 @@ Loading.include({
     addProgress: function(progress_code) {
         var self = this;
         this.progress_timers[progress_code] = setTimeout(function () {
-            if ('get_progress' in self) {
-                // uncomment this line if you want progress be reported independently of bus.bus notifications
-                // self.get_progress(progress_code)
-                self.notifyProgressCode(progress_code);
-
-            }
+            // uncomment this line if you want progress be reported independently of longpolling notifications
+            // self.getProgressViaRPC(progress_code)
+            self.notifyProgressCode(progress_code);
         }, progress_timeout);
     },
     removeProgress: function(progress_code) {
