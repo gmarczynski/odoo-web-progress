@@ -28,7 +28,7 @@ var ProgressMenu = Widget.extend({
     start: function () {
         this.progress_timer = false;
         this.$progresses_preview = this.$('.o_mail_systray_dropdown_items');
-        this._setTimerProgressPreview();
+        this._updateProgressPreview();
         bus.on('notification', this, function (notifications) {
             var self = this;
             _.each(notifications, function (notification) {
