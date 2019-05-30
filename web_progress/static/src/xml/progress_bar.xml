@@ -6,7 +6,7 @@
         <div id="progress_bar"/>
     </div>
     <button class="btn btn-primary"  id="progress_cancel" style="visibility:hidden">Cancel</button>
-    <div class="oe_progress_message" style="color:white"/>
+    <div id="progress_message"/>
 </t>
 
 </templates>

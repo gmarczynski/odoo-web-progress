@@ -14,7 +14,7 @@
     
     <t t-name="web_progress.ProgressMenuPreview">
         <t t-if="_.isEmpty(progress_data)">
-            <li class="text-center o_no_progress">
+            <li class="dropdown-item-text text-center o_no_activity">
                 <span>No operations in progress.</span>
             </li>
         </t>
