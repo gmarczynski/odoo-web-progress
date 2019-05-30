@@ -35,7 +35,6 @@
                             <t t-esc="progress.done"/>/<t t-esc="progress.total"/>&amp;nbsp;
                         </span>
                     </div>
-                    <button class="fa fa-square progress_cancel_button" t-att-id="progress.code" style="visibility:hidden"/>
                 </div>
             </div>
         </t>

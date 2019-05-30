@@ -51,18 +51,21 @@ var ProgressBar = Widget.extend({
             cancellable = cancellable && el.cancellable;
             });
         self.$("#progress_frame").css("visibility", 'visible');
+        $(".oe_throbber_message").css("visibility", 'hidden').css('position', 'absolute');
         if (cancellable) {
             self.$("#progress_cancel").off();
             self.$("#progress_cancel").css("visibility", 'visible');
             self.$("#progress_cancel").one('click', function () {
                 core.bus.trigger('rpc_progress_cancel', progress_code);
+                self.$("#progress_cancel").replaceWith("");
+                self.$("#progress_message").html(_t("Cancelling..."));
             });
         } else {
             self.$("#progress_cancel").remove();
         }
-        self.$("#progress_bar").animate({width: progress + '%'}, progress_timeout / 2);
+        self.$("#progress_bar").animate({width: progress + '%'}, progress_timeout);
         if (progress_html) {
-            self.$(".oe_progress_message").html(progress_html);
+            self.$("#progress_message").html(progress_html);
         }
         },
 });

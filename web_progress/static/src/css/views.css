@@ -5,6 +5,7 @@
 #progress_frame {
     width: 100%;
     background-color: rgba(45, 53, 17, 0.38);
+    border: 1px solid #aaa;
     border-radius: 5px;
     margin-top: 10px;
     margin-bottom: 5px;
@@ -19,4 +20,12 @@
 
 .progress_cancel_button {
     font-size: 10px;
+}
+
+#progress_message {
+    color: white;
+}
+
+.oe_cancelling_message {
+    color: white;
 }
