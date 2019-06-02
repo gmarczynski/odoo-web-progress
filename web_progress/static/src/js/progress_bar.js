@@ -38,7 +38,8 @@ var ProgressBar = Widget.extend({
         var top_progress = progress_list[0];
         var progress_code = top_progress.code;
         var uid = session.uid;
-        if (this.progress_code !== progress_code || uid !== 1 && uid !== top_progress.uid) {
+        var is_admin = session.is_admin;
+        if (this.progress_code !== progress_code || !is_admin && uid !== top_progress.uid) {
             return;
         }
         var progress_html = '<div class="text-left">';
@@ -69,7 +70,7 @@ var ProgressBar = Widget.extend({
             self.$("#progress_message").addClass('o_progress_message_systray');
             self.$("#progress_cancel").addClass('btn-default');
             self.$("#progress_user").css("visibility", 'visible');
-            if (uid === 1) {
+            if (is_admin) {
                 self.$("#progress_user").html(top_progress.user);
             }
         }

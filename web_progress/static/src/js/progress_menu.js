@@ -116,7 +116,8 @@ var ProgressMenu = Widget.extend({
     _processProgressData: function(code, state, uid) {
         var progress_bar = this._findProgressBar(code);
         var session_uid = this.getSession().uid;
-        if (session_uid !== uid && session_uid !== 1) {
+        var session_is_admin = this.getSession().is_admin;
+        if (session_uid !== uid && !session_is_admin) {
             return;
         }
         if (!progress_bar && state === 'ongoing') {
@@ -133,7 +134,7 @@ var ProgressMenu = Widget.extend({
             this.$('.fa-spinner').removeClass('fa-spin');
         }
         this.$el.toggleClass('o_no_notification', !this.progressCounter);
-        if (session_uid !== 1) {
+        if (!session_is_admin) {
             this.$el.toggleClass('hidden', !this.progressCounter);
         }
     },
