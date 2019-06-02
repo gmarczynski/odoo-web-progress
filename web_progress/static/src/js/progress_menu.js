@@ -7,6 +7,7 @@ var bus = require('bus.bus').bus;
 var session = require('web.session');
 var SystrayMenu = require('web.SystrayMenu');
 var Widget = require('web.Widget');
+var ProgressBar = require('web.progress.bar').ProgressBar;
 
 var QWeb = core.qweb;
 var progress_timeout = 10000;
@@ -20,15 +21,18 @@ var ProgressMenu = Widget.extend({
     events: {
         "click": "_onProgressMenuClick",
     },
+    progress_bars: [],
     init: function(parent) {
         this._super(parent);
         bus.add_channel(this.channel);
         bus.start_polling();
     },
     start: function () {
-        this.progress_timer = false;
+        this.progressCounter = 0;
         this.$progresses_preview = this.$('.o_progress_navbar_dropdown_channels');
-        this._updateProgressPreview();
+        if (this.getSession().uid !== 1) {
+            this.$el.toggleClass('hidden', !this.progressCounter);
+        }
         bus.on('notification', this, function (notifications) {
             var self = this;
             _.each(notifications, function (notification) {
@@ -45,37 +49,89 @@ var ProgressMenu = Widget.extend({
      */
     _onNotification: function(notification){
         if (this.channel && (notification[0] === this.channel)) {
-            this._setTimerProgressPreview();
-            var result = notification[1][0];
-            if (['ongoing', 'done'].indexOf(result.state) >= 0) {
+            // this._setTimerProgressPreview();
+            var progress = notification[1][0];
+            this._processProgressData(progress.code, progress.state, progress.uid);
+            if (['ongoing', 'done'].indexOf(progress.state) >= 0) {
                 core.bus.trigger('rpc_progress', notification[1])
             }
         }
     },
+    // /**
+    //  * Make RPC and get progress details
+    //  * @private
+    //  */
+    // _getProgressData: function(){
+    //     var self = this;
+    //
+    //     return self._rpc({
+    //         model: 'web.progress',
+    //         method: 'get_all_progress',
+    //         kwargs: {
+    //             context: session.user_context,
+    //         },
+    //     },{'shadow': true}).then(function (data) {
+    //         self.progress_data = data;
+    //     });
+    // },
     /**
-     * Make RPC and get progress details
+     * Add progress bar
      * @private
      */
-    _getProgressData: function(){
-        var self = this;
-
-        return self._rpc({
-            model: 'web.progress',
-            method: 'get_all_progress',
-            kwargs: {
-                context: session.user_context,
-            },
-        },{'shadow': true}).then(function (data) {
-            self.progress_data = data;
-            self.progressCounter = data.length;
-            self.$('.o_notification_counter').text(self.progressCounter);
-            if (self.progressCounter > 0) {
-                self.$('.fa-spinner').addClass('fa-spin');
-            } else {
-                self.$('.fa-spinner').removeClass('fa-spin');
-            }
-            self.$el.toggleClass('o_no_notification', !self.progressCounter);
-        });
+    _addProgressBar: function(code) {
+        var progress_bar = new ProgressBar(this, code);
+        this.progress_bars[code] = progress_bar;
+        progress_bar.appendTo(this.$progresses_preview);
+    },    
+    /**
+     * Remove progress bar
+     * @private
+     */
+    _removeProgressBar: function(code) {
+        var progress_bar = this._findProgressBar(code);
+        if (progress_bar) {
+            progress_bar.destroy();
+            delete this.progress_bars[code];
+        }
+    },
+    /**
+     * Find progress bar
+     * @private
+     */
+    _findProgressBar: function(code) {
+        var found_bar = false;
+        if (this.progress_bars.hasOwnProperty(code)) {
+            found_bar = this.progress_bars[code];
+        }
+        return found_bar;
+    },
+    /**
+     * Process and display progress details
+     * @private
+     */
+    _processProgressData: function(code, state, uid) {
+        var progress_bar = this._findProgressBar(code);
+        var session_uid = this.getSession().uid;
+        if (session_uid !== uid && session_uid !== 1) {
+            return;
+        }
+        if (!progress_bar && state === 'ongoing') {
+            this._addProgressBar(code);
+        }
+        if (progress_bar && state === 'done') {
+            this._removeProgressBar(code);
+        }
+        this.progressCounter = Object.keys(this.progress_bars).length;
+        this.$('.o_notification_counter').text(this.progressCounter);
+        if (this.progressCounter > 0) {
+            this.$('.fa-spinner').addClass('fa-spin');
+        } else {
+            this.$('.fa-spinner').removeClass('fa-spin');
+        }
+        this.$el.toggleClass('o_no_notification', !this.progressCounter);
+        if (session_uid !== 1) {
+            this.$el.toggleClass('hidden', !this.progressCounter);
+        }
     },
     /**
      * Get particular model view to redirect on click of progress scheduled on that model.
@@ -96,41 +152,30 @@ var ProgressMenu = Widget.extend({
     _isOpen: function () {
         return this.$el.hasClass('open');
     },
-    /**
-     * Schedule update of all progress
-     * @private
-     */
-    _setTimerProgressPreview: function () {
-        var self = this;
-        if (!self.progress_timer) {
-            self.progress_timer = setTimeout(function () {
-                self.progress_timer = true;
-                self._updateProgressPreview();
-            }, progress_timeout);
-        }
-    },
-    /**
-     * Update(render) progress system tray view on progress updation.
-     * @private
-     */
-    _updateProgressPreview: function () {
-        var self = this;
-        self._getProgressData().then(function (data){
-            self.progress_timer = false;
-            var html = QWeb.render('web_progress.ProgressMenuPreview', {
-                progress_data : self.progress_data
-            });
-            self.$progresses_preview.html(html);
-            _.forEach(self.progress_data, function (el){
-                if (el.cancellable) {
-                    self.$('#' + el.code).css("visibility", 'visible');
-                    self.$('#' + el.code).one('click', function () {
-                        core.bus.trigger('rpc_progress_cancel', el.code);
-                    });
-                }
-            });
-        });
-    },
+    // /**
+    //  * Schedule update of all progress
+    //  * @private
+    //  */
+    // _setTimerProgressPreview: function () {
+    //     var self = this;
+    //     if (!self.progress_timer) {
+    //         self.progress_timer = setTimeout(function () {
+    //             self.progress_timer = true;
+    //             self._updateProgressPreview();
+    //         }, progress_timeout);
+    //     }
+    // },
+    // /**
+    //  * Update(render) progress system tray view on progress updation.
+    //  * @private
+    //  */
+    // _updateProgressPreview: function () {
+    //     var self = this;
+    //     self._getProgressData().then(function (){
+    //         self.progress_timer = false;
+    //         self._processProgressData();
+    //     });
+    // },
     /**
      * When menu clicked update progress preview if counter updated
      * @private
@@ -138,7 +183,7 @@ var ProgressMenu = Widget.extend({
      */
     _onProgressMenuClick: function () {
         if (!this._isOpen()) {
-            this._updateProgressPreview();
+            // this._updateProgressPreview();
         }
     },
 
