@@ -22,10 +22,22 @@
     font-size: 10px;
 }
 
-#progress_message {
+.o_progress_message {
     color: white;
+}
+
+.o_progress_message_systray {
+    color: gray;
+    border-bottom: 1px solid #aaa;
+    padding-bottom: 10px;
 }
 
 .oe_cancelling_message {
     color: white;
+}
+
+.o_progress_systray {
+    margin: 10px;
+    width: 350px;
+    overflow: auto;
 }

@@ -2,11 +2,14 @@
 <templates id="template" xml:space="preserve">
 
 <t t-name="ProgressBar">
-    <div id="progress_frame" style="visibility:hidden">
-        <div id="progress_bar"/>
+    <div>
+        <div id="progress_user" class="o_progress_user" style="visibility:hidden"/>
+        <div id="progress_frame" style="visibility:hidden">
+            <div id="progress_bar"/>
+        </div>
+        <button class="btn btn-sm" id="progress_cancel" style="visibility:hidden">Cancel</button>
+        <div id="progress_message" class="o_progress_message"/>
     </div>
-    <button class="btn btn-primary"  id="progress_cancel" style="visibility:hidden">Cancel</button>
-    <div id="progress_message"/>
 </t>
 
 </templates>

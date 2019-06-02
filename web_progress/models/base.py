@@ -47,16 +47,17 @@ class Base(models.AbstractModel):
         web_progress_obj = self.env['web.progress']
         percent = max(min(percent, 100), 0)
         recur_depth = web_progress_obj._get_recur_depth(code)
+        params = dict(code=code,
+                      num=percent,
+                      total=100,
+                      msg=msg,
+                      recur_depth=recur_depth,
+                      cancellable=cancellable,
+                      log_level=log_level)
         if percent >= 100:
-            web_progress_obj._report_progress_done(code, 100, msg, recur_depth, cancellable, log_level)
+            web_progress_obj._report_progress_done(params)
         else:
-            web_progress_obj._report_progress_do_percent(code=code,
-                                                         num=percent,
-                                                         total=100,
-                                                         msg=msg,
-                                                         recur_depth=recur_depth,
-                                                         cancellable=cancellable,
-                                                         log_level=log_level)
+            web_progress_obj._report_progress_do_percent(params)
 
     @api.model
     def web_progress_iter(self, data, msg='', total=None, cancellable=True, log_level="info"):
@@ -69,6 +70,8 @@ class Base(models.AbstractModel):
         :param log_level: log level to use when logging progress
         :return: yields every element of data
         """
+        if not self.env.context.get('progress_code'):
+            return data
         return GeneratorWithLenIndexable(self.env['web.progress']._report_progress(data,
                                                                                    msg=msg,
                                                                                    total=total,

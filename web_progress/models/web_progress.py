@@ -8,6 +8,8 @@ import logging
 
 _logger = logging.getLogger(__name__)
 lock = RLock()
+# track time between progress reports
+last_report_time = {}
 
 
 class WebProgress(models.TransientModel):
@@ -16,12 +18,12 @@ class WebProgress(models.TransientModel):
     _transient_max_hours = 0.5
     # store recursion depth for every operation
     _recur_depths = {}
-    # track time between progress reports
-    _last_progress = {}
+    # progress reports data
+    _progress_data = {}
     # time between progress reports (in seconds)
     _progress_period_secs = 5
 
-    name = fields.Char("Message")
+    msg = fields.Char("Message")
     code = fields.Char("Code", required=True, index=True)
     recur_depth = fields.Integer("Recursion depth", index=True, default=0)
     progress = fields.Integer("Progress")
@@ -32,7 +34,6 @@ class WebProgress(models.TransientModel):
                               ('cancel', "Cancelled"),
                               ], "State")
     cancellable = fields.Boolean("Cancellable")
-    user_id = fields.Many2one('res.users', "User")
 
     #
     # Called by web client
@@ -47,10 +48,9 @@ class WebProgress(models.TransientModel):
         vals = {
             'code': code,
             'state': 'cancel',
-            'user_id': self.env.user.id,
         }
         _logger.info('Cancelling progress {}'.format(code))
-        self._create_progress(vals)
+        self._create_progress([vals], notify=False)
 
     @api.model
     def get_progress(self, code=None, recur_depth=None):
@@ -66,7 +66,7 @@ class WebProgress(models.TransientModel):
         if code:
             domain.append(('code', '=', code))
         if domain:
-            progress_id = self.search(domain, order='create_date desc', limit=1)
+            progress_id = self.search(domain, order='create_date DESC,recur_depth DESC', limit=1)
         else:
             progress_id = self.env[self._name]
         # check progress of parent operations
@@ -74,14 +74,15 @@ class WebProgress(models.TransientModel):
             for parent_depth in range(progress_id.recur_depth):
                 result += self.get_progress(code, recur_depth=parent_depth)
         progress_vals = {
-            'msg': progress_id.name,
+            'msg': progress_id.msg,
             'code': progress_id.code,
             'progress': progress_id.progress,
             'done': progress_id.done,
             'total': progress_id.total,
             'state': progress_id.state,
             'cancellable': progress_id.cancellable,
-            'uid': progress_id.user_id.id,
+            'uid': progress_id.create_uid.id,
+            'user': progress_id.create_uid.name,
         }
         # register this operation progress
         result.append(progress_vals)
@@ -96,10 +97,10 @@ class WebProgress(models.TransientModel):
         query = """
         SELECT DISTINCT
         FIRST_VALUE(CASE WHEN state = 'ongoing' AND done != total THEN id END) 
-            OVER (PARTITION BY code ORDER BY create_date DESC) AS id
+            OVER (PARTITION BY code ORDER BY create_date DESC, recur_depth DESC) AS id
         FROM web_progress
         WHERE recur_depth = 0 {user_id}
-        """.format(user_id=self.env.user.id != SUPERUSER_ID and "AND user_id = {}".format(self.env.user.id) or '')
+        """.format(user_id=self.env.user.id != SUPERUSER_ID and "AND create_uid = {}".format(self.env.user.id) or '')
         # superuser has right to see (and cancel) progress of everybody
         # _logger.info(query)
         self.env.cr.execute(query)
@@ -120,14 +121,14 @@ class WebProgress(models.TransientModel):
                     if el['total']:
                         progress_total /= el['total']
             progress_real[progress_id.code] = round(progress, 0)
-        return [{'msg': progress_id.name,
+        return [{'msg': progress_id.msg,
                  'code': progress_id.code,
                  'progress': progress_real[progress_id.code],
                  'done': progress_id.done,
                  'total': progress_id.total,
                  'state': progress_id.state,
                  'cancellable': progress_id.cancellable,
-                 'uid': progress_id.user_id,
+                 'uid': progress_id.create_uid.id,
                  } for progress_id in progress_ids]
 
     #
@@ -146,30 +147,34 @@ class WebProgress(models.TransientModel):
         :param log_level: log level to use when logging progress
         :return: yields every element of iteration
         """
+        # web progress_code typically comes from web client in call context
+        code = self.env.context.get('progress_code')
+        if not code:
+            return data
         if total is None:
             total = len(data)
         if total <= 1:
             # skip report progress if there is zero or 1 element in data
-            for rec in data:
-                yield rec
-            return
+            return data
 
-        # web progress_code typically comes from web client in call context
-        code = self.env.context.get('progress_code')
         with lock:
             recur_depth = self._get_recur_depth(code)
             if recur_depth:
                 self._recur_depths[code] += 1
             else:
                 self._recur_depths[code] = 1
-
+        params = dict(code=code, total=total, msg=msg, recur_depth=recur_depth,
+                      cancellable=cancellable, log_level=log_level)
         try:
-            for num, rec in zip(range(total), data):
-                self._report_progress_do_percent(code, num, total, msg, recur_depth, cancellable, log_level)
+            for done, rec in zip(range(total), data):
+                params['done'] = done
+                params['progress'] = round(100 * done / total, 2)
+                params['state'] = done >= total and 'done' or 'ongoing'
+                self._report_progress_do_percent(params)
                 yield rec
         finally:
             # finally record progress as finished
-            self._report_progress_done(code, total, msg, recur_depth, cancellable, log_level)
+            self._report_progress_done(params)
             with lock:
                 self._recur_depths[code] -= 1
                 if not self._recur_depths[code]:
@@ -187,78 +192,94 @@ class WebProgress(models.TransientModel):
         return recur_depth
 
     @api.model
-    def _create_progress(self, vals):
+    def _create_progress(self, vals_list, notify=True):
         """
         Create a web progress record
         Creation uses a fresh cursor, i.e. outside the current transaction scope
-        :param vals: creation vals
+        :param vals: list of creation vals
         :return: None
         """
+        if not vals_list:
+            return
+        code = vals_list[0].get('code')
         with api.Environment.manage():
             with registry(self.env.cr.dbname).cursor() as new_cr:
                 # Create a new environment with new cursor database
                 new_env = api.Environment(new_cr, self.env.uid, self.env.context)
                 # with_env replace original env for this method
                 progress_obj = self.with_env(new_env)
-                progress_obj.create(vals)  # isolated transaction to commit
+                for vals in vals_list:
+                    progress_obj.create(vals)  # isolated transaction to commit
                 # notify bus
-                progress_notif = progress_obj.get_progress(vals['code'])
-                new_env['bus.bus'].sendone('web_progress', progress_notif)
+                if notify:
+                    progress_notif = progress_obj.get_progress(code)
+                    new_env['bus.bus'].sendone('web_progress', progress_notif)
                 new_env.cr.commit()
 
     @api.model
-    def _check_cancelled(self, code):
+    def _check_cancelled(self, params):
         """
         Check if operation was not cancelled by the user.
         The check is executed using a fresh cursor, i.e., it looks outside the current transaction scope
         :param code: web progress code
         :return: (recordset) res.users of the user that cancelled the operation
         """
+        code = params.get('code')
         with api.Environment.manage():
             with registry(self.env.cr.dbname).cursor() as new_cr:
                 # use new cursor to check for cancel
                 query = """
-                SELECT user_id FROM web_progress
+                SELECT create_uid FROM web_progress
                 WHERE code = %s AND state = 'cancel' AND recur_depth = 0 
-                    AND (user_id = %s or user_id = %s)
+                    AND (create_uid = %s OR create_uid = %s)
                 """
                 new_cr.execute(query, (code, self.env.user.id, SUPERUSER_ID))
                 result = new_cr.fetchall()
                 if result:
-                    return self.user_id.browse(result[0])
+                    return self.create_uid.browse(result[0])
         return False
 
-    def _report_progress_do_percent(self, code, num, total, msg, recur_depth, cancellable=True, log_level="debug"):
+    def _get_parent_codes(self, params):
+        code = params.get('code')
+        return [code + '##' + str(d) for d in range(params.get('recur_depth'))]
+
+    def _get_precise_code(self, params):
+        return params.get('code') + '##' + str(params.get('recur_depth'))
+
+    def _report_progress_do_percent(self, params):
         """
         Progress reporting function
         At the moment this only logs the progress.
-        :param num: how much items processed
-        :param total: total of items to process
-        :param msg: message for progress report
-        :param recur_depth: recursion depth
-        :param cancellable: indicates whether the operation is cancellable
+        :param params: dict with parameters:
+            done: how much items processed
+            total: total of items to process
+            msg: message for progress report
+            recur_depth: recursion depth
+            cancellable: indicates whether the operation is cancellable
         :return: None
         """
         # check the time from last progress report
-        precise_code = code + '##' + str(recur_depth)
-        last_progress = self._last_progress.get(precise_code)
-        if not last_progress:
-            last_progress = (datetime.now() - timedelta(seconds=self._progress_period_secs + 1))
-            self._last_progress[precise_code] = last_progress
+        global last_report_time
+        code = params.get('code')
+        precise_code = self._get_precise_code(params)
         time_now = datetime.now()
-        period_sec = (time_now - last_progress).total_seconds()
-        # report progress after max period and on every step
-        # the first progress 0 will always be reported
+        with lock:
+            last_ts = last_report_time.get(code)
+            if not last_ts:
+                last_ts = (time_now - timedelta(seconds=self._progress_period_secs + 1))
+            self._progress_data[precise_code] = dict(params)
+        period_sec = (time_now - last_ts).total_seconds()
+        # report progress every time period
         if period_sec >= self._progress_period_secs:
-            user_id = self._check_cancelled(code)
-            if cancellable and user_id:
-                raise UserError(_("Operation has been cancelled by") + " " + user_id.name)
-            percent = round(100 * num / total, 2)
-            self._report_progress_store(code, percent, num, total, msg,
-                                        recur_depth=recur_depth, cancellable=cancellable, log_level=log_level)
-            self._last_progress[precise_code] = time_now
+            if params.get('cancellable', True):
+                user_id = self._check_cancelled(params)
+                if user_id:
+                    raise UserError(_("Operation has been cancelled by") + " " + user_id.name)
+            self._report_progress_store(params)
+            with lock:
+                last_report_time[code] = time_now
 
-    def _report_progress_done(self, code, total, msg, recur_depth=0, cancellable=True, log_level="debug"):
+    def _report_progress_done(self, params):
         """
         Report progress as done.
         :param code: progress operation code
@@ -268,47 +289,54 @@ class WebProgress(models.TransientModel):
         :param cancellable: indicates whether the operation is cancellable
         :return:
         """
-        ret = self._report_progress_store(code, 100, total, total, msg, 'done', recur_depth, cancellable, log_level)
-        # invalidate the last time for this code
-        precise_code = code + '##' + str(recur_depth)
-        if precise_code in self._last_progress:
-            del self._last_progress[precise_code]
-        # invalidate all parent codes to be sure that their next call is recorded
-        parent_codes = [code + '##' + str(d) for d in range(recur_depth)]
-        for parent_code in parent_codes:
-            if parent_code in self._last_progress:
-                del self._last_progress[parent_code]
+        precise_code = self._get_precise_code(params)
+        params['progress'] = 100
+        params['done'] = params['total']
+        params['state'] = 'done'
+        if params.get('iter_depth'):
+            # done sub-level progress, lazy report
+            ret = self._report_progress_do_percent(params)
+        else:
+            # done main-level progress, report immediatelly
+            self._progress_data[precise_code] = dict(params)
+            ret = self._report_progress_store(params)
+        # remove data for this code
+        with lock:
+            if precise_code in self._progress_data:
+                del self._progress_data[precise_code]
         return ret
 
-    def _report_progress_store(self, code, percent, num, total, msg, state='ongoing',
-                               recur_depth=0, cancellable=True, log_level="debug"):
+    def _report_progress_prepare_vals(self, params):
+        vals = {k:v for k,v in params.items() if k in self._fields}
+        return vals
+
+    def _report_progress_store(self, params):
         """
         Progress storing function. Stores progress in log and in db.
         :param code: progress operation code
         :param percent: done percent
-        :param num: done units
+        :param done: done units
         :param total: total units
         :param msg: logging message
         :param recur_depth: recursion depth
         :param cancellable: indicates whether the operation is cancellable
         :param state: state of progress: ongoing or done
         """
-        log_message = "Progress %s%% (%s/%s)%s" % (percent, num, total, msg and (' %s.' % msg) or '')
-        if hasattr(_logger, log_level):
-            logger_cmd = getattr(_logger, log_level)
-        else:
-            logger_cmd = _logger.info
-        logger_cmd((">" * (recur_depth + 1)) + " " + log_message)
-        vals = {
-            'name': msg,
-            'code': code,
-            'recur_depth': recur_depth,
-            'progress': percent,
-            'done': num,
-            'total': total,
-            'state': state,
-            'cancellable': cancellable,
-            'user_id': self.env.user.id,
-        }
-        self._create_progress(vals)
+        codes = self._get_parent_codes(params)
+        codes.append(self._get_precise_code(params))
+        vals_list = []
+        for precise_code in codes:
+            with lock:
+                progress_data = self._progress_data.get(precise_code)
+            log_message = "Progress {code} {level} {progress}% ({done}/{total}) {msg}".format(
+                level=(">" * (progress_data.get('recur_depth') + 1)),
+                **progress_data)
+            log_level = progress_data.get('log_level')
+            if hasattr(_logger, log_level):
+                logger_cmd = getattr(_logger, log_level)
+            else:
+                logger_cmd = _logger.info
+            logger_cmd(log_message)
+            vals_list.append(self._report_progress_prepare_vals(progress_data))
+        self._create_progress(vals_list)
 
