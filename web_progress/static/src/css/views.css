@@ -1,5 +1,5 @@
 /**
- * This file add progress to throbber
+ * Style for progress bar
  */
 
 #progress_frame {
@@ -16,6 +16,14 @@
     height: 10px;
     background-color: #00EE00;
     border-radius: 5px;
+}
+
+#progress_bar.o_progress_bar_timeout {
+    background-color: #EE9900;
+}
+
+#progress_bar.o_progress_bar_timeout_destroy {
+    background-color: red;
 }
 
 .progress_cancel_button {
