@@ -23,6 +23,9 @@ class GeneratorWithLenIndexable(object):
     def __getitem__(self, key):
         return self.data.__getitem__(key)
 
+    def __getattr__(self, key):
+        return getattr(self.data, key)
+
 
 class Base(models.AbstractModel):
     _inherit = 'base'
