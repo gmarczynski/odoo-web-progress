@@ -149,14 +149,13 @@ class WebProgress(models.TransientModel):
         """
         # web progress_code typically comes from web client in call context
         code = self.env.context.get('progress_code')
-        if not code:
-            return data
         if total is None:
             total = len(data)
-        if total <= 1:
-            # skip report progress if there is zero or 1 element in data
-            return data
-
+        if not code or total <= 1:
+            # no progress reporting when no code and for singletons
+            for elem in data:
+                yield elem
+            return
         with lock:
             recur_depth = self._get_recur_depth(code)
             if recur_depth:
