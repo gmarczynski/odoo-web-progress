@@ -13,6 +13,7 @@ var framework = require('web.framework');
 var session = require('web.session');
 
 var _t = core._t;
+var QWeb = core.qweb;
 var progress_timeout = progress_loading.progress_timeout;
 var progress_timeout_warn = progress_timeout*2;
 var framework_blockUI = framework.blockUI;
@@ -26,8 +27,9 @@ var ProgressBar = Widget.extend({
         this._super(parent);
         this.progress_code = code;
         this.$spin_container = $spin_container;
-        core.bus.on('rpc_progress_set_code', this, this.defineProgressCode);
-        core.bus.on('rpc_progress', this, this.showProgress);
+        this.systray = !$spin_container;
+        this.cancel_html = QWeb.render('ProgressBarCancel', {});
+        this.cancel_confirm_html = QWeb.render('ProgressBarCancelConfirm', {});
     },
     start: function() {
         this.$progress_frame = this.$("#progress_frame"); 
@@ -35,6 +37,8 @@ var ProgressBar = Widget.extend({
         this.$progress_cancel = this.$("#progress_cancel");
         this.$progress_bar = this.$("#progress_bar");
         this.$progress_user = this.$("#progress_user");
+        core.bus.on('rpc_progress_set_code', this, this.defineProgressCode);
+        core.bus.on('rpc_progress', this, this.showProgress);
     },
     defineProgressCode: function(progress_code) {
         if (!this.progress_code) {
@@ -66,7 +70,7 @@ var ProgressBar = Widget.extend({
             cancellable = cancellable && el.cancellable;
             level += '▶';
             });
-        progress_html += '</div>'
+        progress_html += '</div>';
         self.$progress_frame.css("visibility", 'visible');
         if (self.$spin_container) {
             // this is main progress bar
@@ -75,28 +79,61 @@ var ProgressBar = Widget.extend({
             // this is a systray progress bar
             self.$progress_message.removeClass('o_progress_message');
             self.$progress_message.addClass('o_progress_message_systray');
-            self.$progress_cancel.addClass('btn-default');
             self.$progress_user.css("visibility", 'visible');
             if (uid === 1) {
                 self.$progress_user.html(top_progress.user);
             }
         }
         if (cancellable) {
-            self.$progress_cancel.off();
-            self.$progress_cancel.css("visibility", 'visible');
-            self.$progress_cancel.one('click', function () {
-                core.bus.trigger('rpc_progress_cancel', progress_code);
-                self.$progress_cancel.css("display", 'none');
-                self.$progress_message.html(_t("Cancelling..."));
-            });
+            self._normalCancel();
         } else {
-            self.$progress_cancel.remove();
+            self.$progress_cancel.html('');
         }
         self.$progress_bar.animate({width: progress + '%'}, progress_timeout);
         this.$progress_message.html(progress_html);
         self._cancelTimeout();
         self._setTimeout();
         },
+    _confirmCancel: function () {
+        var self = this;
+        self.$progress_cancel.html(self.cancel_confirm_html);
+        if (this.systray) {
+            self.$progress_cancel.find('#cancel_message').addClass('o_cancel_message_systray');
+            self.$progress_cancel.find('.btn').addClass('btn-default');
+        }
+        var $progress_cancel_confirm_yes = self.$progress_cancel.find('#progress_cancel_yes');
+        var $progress_cancel_confirm_no = self.$progress_cancel.find('#progress_cancel_no');
+        $progress_cancel_confirm_yes.off();
+        $progress_cancel_confirm_yes.one('click', function (event) {
+            event.stopPropagation();
+            self._confirmCancelYes();
+        });
+        $progress_cancel_confirm_no.off();
+        $progress_cancel_confirm_no.one('click', function (event) {
+            event.stopPropagation();
+            self._normalCancel();
+        });
+    },
+    _confirmCancelYes: function () {
+        var self = this;
+        core.bus.trigger('rpc_progress_cancel', self.progress_code);
+        self.$progress_cancel.css("display", 'none');
+        self.$progress_message.html(_t("Cancelling..."));
+    },
+    _normalCancel: function () {
+        var self = this;
+        self.$progress_cancel.html(self.cancel_html);
+        if (this.systray) {
+            self.$progress_cancel.find('#cancel_message').addClass('o_cancel_message_systray');
+            self.$progress_cancel.find('.btn').addClass('btn-default');
+        }
+        var $progress_cancel_confirm = self.$progress_cancel.find('#progress_cancel_confirm');
+        $progress_cancel_confirm.off();
+        $progress_cancel_confirm.one('click', function (event) {
+            event.stopPropagation();
+            self._confirmCancel();
+        });
+    },
     _setTimeout: function () {
         var self = this;
         if (!this.progress_timer) {
@@ -115,7 +152,7 @@ var ProgressBar = Widget.extend({
     _notifyTimeoutWarn: function () {
         var self = this;
         this.$progress_bar.addClass('o_progress_bar_timeout');
-        this.$progress_cancel.css("visibility", 'hidden');
+        this.$progress_cancel.html('');
         this.$progress_message.html(_t('Stalling...'));
         this.progress_timer = setTimeout(function () {
             self._notifyTimeoutDestr();
@@ -123,9 +160,9 @@ var ProgressBar = Widget.extend({
     },
     _notifyTimeoutDestr: function () {
         var self = this;
-        self.$progress_bar.removeClass('o_progress_bar_timeout');
-        self.$progress_bar.addClass('o_progress_bar_timeout_destroy');
-        self.$progress_cancel.css("visibility", 'hidden');
+        this.$progress_bar.removeClass('o_progress_bar_timeout');
+        this.$progress_bar.addClass('o_progress_bar_timeout_destroy');
+        this.$progress_cancel.html('');
         this.$progress_message.html(_t('Stalled'));
         this.progress_timer = setTimeout(function () {
             core.bus.trigger('rpc_progress_destroy', self.progress_code);
