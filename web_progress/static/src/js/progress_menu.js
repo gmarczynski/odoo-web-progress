@@ -16,6 +16,7 @@ var progress_timeout = 10000;
  */
 var ProgressMenu = Widget.extend({
     template:'web_progress.ProgressMenu',
+    channel: 'web_progress',
     progress_bars: [],
     init: function(parent) {
         this._super(parent);
