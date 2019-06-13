@@ -23,6 +23,9 @@ class GeneratorWithLenIndexable(object):
     def __getitem__(self, key):
         return self.data.__getitem__(key)
 
+    def __getattr__(self, key):
+        return getattr(self.data, key)
+
 
 class Base(models.AbstractModel):
     _inherit = 'base'
@@ -48,8 +51,9 @@ class Base(models.AbstractModel):
         percent = max(min(percent, 100), 0)
         recur_depth = web_progress_obj._get_recur_depth(code)
         params = dict(code=code,
-                      num=percent,
+                      percent=percent,
                       total=100,
+                      state=percent >= 100 and 'done' or 'ongoing',
                       msg=msg,
                       recur_depth=recur_depth,
                       cancellable=cancellable,
@@ -79,6 +83,16 @@ class Base(models.AbstractModel):
                                                                                    log_level=log_level),
                                          total or len(data),
                                          data)
+
+    def web_progress_cancel(self, code=None):
+        """
+        Cancel progress of current operation or, if code given by argument, an operation of a given progress code
+        :param code:
+        """
+        if code is None:
+            code = self._context.get('progress_code', None)
+        if code is not None:
+            self.env['web.progress'].cancel_progress(code)
 
     #
     # Add progress reporting to common time-consuming collections
@@ -120,7 +134,7 @@ class Base(models.AbstractModel):
                 entire-recordset-prefetch-effects) & removes the previous batch
                 from the cache after it's been iterated in full
                 """
-                for idx in self.web_progress_iter(range(0, len(rs), 1000), _("batches of 1000 lines")):
+                for idx in self.web_progress_iter(range(0, len(rs), 1000), _("exporting batches of 1000 lines")):
                     sub = rs[idx:idx + 1000]
                     yield sub
                     rs.invalidate_cache(ids=sub.ids)

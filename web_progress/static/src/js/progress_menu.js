@@ -27,12 +27,14 @@ var ProgressMenu = Widget.extend({
         this.call('bus_service', 'startPolling');
     },
     start: function () {
+        core.bus.on('rpc_progress_destroy', this, this._removeProgressBar);
         this.progressCounter = 0;
         this.$progresses_preview = this.$('.o_mail_systray_dropdown_items');
         if (this.getSession().uid !== 1) {
             this.$el.toggleClass('hidden', !this.progressCounter);
         }
         this.call('bus_service', 'onNotification', this, this._onNotification);
+        this._updateProgressMenu();
         return this._super();
     },
 
@@ -83,9 +85,14 @@ var ProgressMenu = Widget.extend({
      * @private
      */
     _addProgressBar: function(code) {
-        var progress_bar = new ProgressBar(this, code);
+        var progress_bar = this._findProgressBar(code);
+        if (progress_bar) {
+            return;
+        }
+        progress_bar = new ProgressBar(this, code);
         this.progress_bars[code] = progress_bar;
         progress_bar.appendTo(this.$progresses_preview);
+        this._updateProgressMenu();
     },
     /**
      * Remove progress bar
@@ -96,6 +103,7 @@ var ProgressMenu = Widget.extend({
         if (progress_bar) {
             progress_bar.destroy();
             delete this.progress_bars[code];
+            this._updateProgressMenu();
         }
     },
     /**
@@ -110,13 +118,32 @@ var ProgressMenu = Widget.extend({
         return found_bar;
     },
     /**
+     * Update counter and style of progress menu
+     * @private
+     */
+    _updateProgressMenu: function() {
+        var session_uid = this.getSession().uid;
+        this.progressCounter = Object.keys(this.progress_bars).length;
+        this.$('.o_notification_counter').text(this.progressCounter);
+        if (this.progressCounter > 0) {
+            this.$('.fa-spinner').addClass('fa-spin');
+            this.$el.removeClass('o_no_notification');
+        } else {
+            this.$('.fa-spinner').removeClass('fa-spin');
+            this.$el.addClass('o_no_notification');
+        }
+        if (!this.getSession().is_admin) {
+            this.$el.toggleClass('hidden', !this.progressCounter);
+        }
+    },
+    /**
      * Process and display progress details
      * @private
      */
     _processProgressData: function(code, state, uid) {
-        var progress_bar = this._findProgressBar(code);
         var session_uid = this.getSession().uid;
         var session_is_admin = this.getSession().is_admin;
+        var progress_bar = this._findProgressBar(code);
         if (session_uid !== uid && !session_is_admin) {
             return;
         }
@@ -125,17 +152,6 @@ var ProgressMenu = Widget.extend({
         }
         if (progress_bar && state === 'done') {
             this._removeProgressBar(code);
-        }
-        this.progressCounter = Object.keys(this.progress_bars).length;
-        this.$('.o_notification_counter').text(this.progressCounter);
-        if (this.progressCounter > 0) {
-            this.$('.fa-spinner').addClass('fa-spin');
-        } else {
-            this.$('.fa-spinner').removeClass('fa-spin');
-        }
-        this.$el.toggleClass('o_no_notification', !this.progressCounter);
-        if (!session_is_admin) {
-            this.$el.toggleClass('hidden', !this.progressCounter);
         }
     },
     /**
@@ -188,7 +204,7 @@ var ProgressMenu = Widget.extend({
      */
     _onProgressMenuClick: function () {
         if (!this._isOpen()) {
-            // this._updateProgressPreview();
+            this._updateProgressMenu();
         }
     },
 
