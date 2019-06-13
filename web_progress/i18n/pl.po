@@ -27,7 +27,7 @@ msgstr "Anuluj"
 #: code:addons/web_progress/static/src/xml/progress_bar.xml:5
 #, python-format
 msgid "Cancel ongoing operation?"
-msgstr "Odwołać bieżącą operację?"
+msgstr "Anulować bieżącą operację?"
 
 #. module: web_progress
 #: model:ir.model.fields,field_description:web_progress.field_web_progress_cancellable
