@@ -84,6 +84,16 @@ class Base(models.AbstractModel):
                                          total or len(data),
                                          data)
 
+    def web_progress_cancel(self, code=None):
+        """
+        Cancel progress of current operation or, if code given by argument, an operation of a given progress code
+        :param code:
+        """
+        if code is None:
+            code = self._context.get('progress_code', None)
+        if code is not None:
+            self.env['web.progress'].cancel_progress(code)
+
     #
     # Add progress reporting to common time-consuming collections
     #
@@ -124,7 +134,7 @@ class Base(models.AbstractModel):
                 entire-recordset-prefetch-effects) & removes the previous batch
                 from the cache after it's been iterated in full
                 """
-                for idx in self.web_progress_iter(range(0, len(rs), 1000), _("batches of 1000 lines")):
+                for idx in self.web_progress_iter(range(0, len(rs), 1000), _("exporting batches of 1000 lines")):
                     sub = rs[idx:idx + 1000]
                     yield sub
                     rs.invalidate_cache(ids=sub.ids)
