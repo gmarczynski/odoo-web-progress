@@ -16,10 +16,6 @@ var progress_timeout = 10000;
  */
 var ProgressMenu = Widget.extend({
     template:'web_progress.ProgressMenu',
-    channel: 'web_progress',
-    events: {
-        "click": "_onProgressMenuClick",
-    },
     progress_bars: [],
     init: function(parent) {
         this._super(parent);
@@ -197,16 +193,16 @@ var ProgressMenu = Widget.extend({
     //         self._processProgressData();
     //     });
     // },
-    /**
-     * When menu clicked update progress preview if counter updated
-     * @private
-     * @param {MouseEvent} event
-     */
-    _onProgressMenuClick: function () {
-        if (!this._isOpen()) {
-            this._updateProgressMenu();
-        }
-    },
+    // /**
+    //  * When menu clicked update progress preview if counter updated
+    //  * @private
+    //  * @param {MouseEvent} event
+    //  */
+    // _onProgressMenuClick: function () {
+    //     if (!this._isOpen()) {
+    //         this._updateProgressMenu();
+    //     }
+    // },
 
 });
 
