@@ -8,9 +8,6 @@ var SystrayMenu = require('web.SystrayMenu');
 var Widget = require('web.Widget');
 var ProgressBar = require('web.progress.bar').ProgressBar;
 
-var QWeb = core.qweb;
-var progress_timeout = 10000;
-
 /**
  * Progress menu item in the systray part of the navbar
  */
@@ -60,23 +57,7 @@ var ProgressMenu = Widget.extend({
             }
         }
     },
-    // /**
-    //  * Make RPC and get progress details
-    //  * @private
-    //  */
-    // _getProgressData: function(){
-    //     var self = this;
-    //
-    //     return self._rpc({
-    //         model: 'web.progress',
-    //         method: 'get_all_progress',
-    //         kwargs: {
-    //             context: session.user_context,
-    //         },
-    //     },{'shadow': true}).then(function (data) {
-    //         self.progress_data = data;
-    //     });
-    // },
+
     /**
      * Add progress bar
      * @private
@@ -170,40 +151,6 @@ var ProgressMenu = Widget.extend({
     _isOpen: function () {
         return this.$el.hasClass('open');
     },
-    // /**
-    //  * Schedule update of all progress
-    //  * @private
-    //  */
-    // _setTimerProgressPreview: function () {
-    //     var self = this;
-    //     if (!self.progress_timer) {
-    //         self.progress_timer = setTimeout(function () {
-    //             self.progress_timer = true;
-    //             self._updateProgressPreview();
-    //         }, progress_timeout);
-    //     }
-    // },
-    // /**
-    //  * Update(render) progress system tray view on progress update.
-    //  * @private
-    //  */
-    // _updateProgressPreview: function () {
-    //     var self = this;
-    //     self._getProgressData().then(function (){
-    //         self.progress_timer = false;
-    //         self._processProgressData();
-    //     });
-    // },
-    // /**
-    //  * When menu clicked update progress preview if counter updated
-    //  * @private
-    //  * @param {MouseEvent} event
-    //  */
-    // _onProgressMenuClick: function () {
-    //     if (!this._isOpen()) {
-    //         this._updateProgressMenu();
-    //     }
-    // },
 
 });
 

@@ -34,6 +34,18 @@ class Base(models.AbstractModel):
     # Progress reporting
     #
 
+    @api.multi
+    def with_progress(self, msg='', total=None, cancellable=True, log_level="info"):
+        """
+        Wrap self (current recordset) with progress reporting generator
+        :param msg: msg to mass in progress report
+        :param total: provide total directly to avoid calling len on data (which fails on generators)
+        :param cancellable: indicates whether the operation is cancellable
+        :param log_level: log level to use when logging progress
+        :return: yields every element of data
+        """
+        return self.web_progress_iter(self, msg=msg, total=total, cancellable=cancellable, log_level=log_level)
+
     @api.model
     def web_progress_percent(self, percent, msg='', cancellable=True, log_level="info"):
         """
@@ -51,7 +63,8 @@ class Base(models.AbstractModel):
         percent = max(min(percent, 100), 0)
         recur_depth = web_progress_obj._get_recur_depth(code)
         params = dict(code=code,
-                      percent=percent,
+                      progress=percent,
+                      done=percent,
                       total=100,
                       state=percent >= 100 and 'done' or 'ongoing',
                       msg=msg,
@@ -76,12 +89,18 @@ class Base(models.AbstractModel):
         """
         if not self.env.context.get('progress_code'):
             return data
+        if total is None:
+            try:
+                total = len(data)
+            except:
+                # impossible to get total, so no way to show progress
+                return data
         return GeneratorWithLenIndexable(self.env['web.progress']._report_progress(data,
                                                                                    msg=msg,
                                                                                    total=total,
                                                                                    cancellable=cancellable,
                                                                                    log_level=log_level),
-                                         total or len(data),
+                                         total,
                                          data)
 
     def web_progress_cancel(self, code=None):
@@ -134,7 +153,8 @@ class Base(models.AbstractModel):
                 entire-recordset-prefetch-effects) & removes the previous batch
                 from the cache after it's been iterated in full
                 """
-                for idx in self.web_progress_iter(range(0, len(rs), 1000), _("exporting batches of 1000 lines")):
+                for idx in self.web_progress_iter(range(0, len(rs), 1000), _("exporting batches of 1000 lines") +
+                                                  " ({})".format(self._description)):
                     sub = rs[idx:idx + 1000]
                     yield sub
                     rs.invalidate_cache(ids=sub.ids)

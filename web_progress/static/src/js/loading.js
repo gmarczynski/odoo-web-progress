@@ -69,8 +69,6 @@ Loading.include({
     addProgress: function(progress_code) {
         var self = this;
         this.progress_timers[progress_code] = setTimeout(function () {
-            // uncomment this line if you want progress be reported independently of longpolling notifications
-            // self.getProgressViaRPC(progress_code)
             self.notifyProgressCode(progress_code);
         }, progress_timeout);
     },
