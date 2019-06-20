@@ -19,7 +19,7 @@ class WebProgressTest(common.SavepointCase):
         for idx in range(20):
             self.partner_vals[idx] = dict(name='Test{}'.format(idx),
                                           email='email{}@test.me'.format(idx))
-            self.partner_ids |= self.partner_obj.create(self.partner_vals[idx])
+            self.partner_ids |= self.partner_obj.create(dict(self.partner_vals[idx]))
 
     def _check_web_progress_iter_recordset(self, total, recur_level=0):
         """

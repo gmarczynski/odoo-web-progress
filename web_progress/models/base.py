@@ -76,6 +76,12 @@ class Base(models.AbstractModel):
         """
         if not self.env.context.get('progress_code'):
             return data
+        if total is None:
+            try:
+                total = len(data)
+            except:
+                # impossible to get total, so no way to show progress
+                return data
         return GeneratorWithLenIndexable(self.env['web.progress']._report_progress(data,
                                                                                    msg=msg,
                                                                                    total=total,
@@ -134,7 +140,8 @@ class Base(models.AbstractModel):
                 entire-recordset-prefetch-effects) & removes the previous batch
                 from the cache after it's been iterated in full
                 """
-                for idx in self.web_progress_iter(range(0, len(rs), 1000), _("exporting batches of 1000 lines")):
+                for idx in self.web_progress_iter(range(0, len(rs), 1000), _("exporting batches of 1000 lines") +
+                                                  " ({})".format(self._description)):
                     sub = rs[idx:idx + 1000]
                     yield sub
                     rs.invalidate_cache(ids=sub.ids)
