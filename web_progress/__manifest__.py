@@ -1,5 +1,5 @@
 {
-    'name': "Web Progress",
+    'name': "Dynamic Progress Bar",
 
     'summary': """
         Progress bar for operations that take more than 5 seconds.
@@ -30,6 +30,7 @@
 
     'demo': [
     ],
+    'images': ['static/description/progress_bar_loading.gif'],
 
     'license': 'LGPL-3',
 
