@@ -138,7 +138,7 @@ class Base(models.AbstractModel):
             total = len(data)
             return self.web_progress_iter(extracted, _("importing to {}").
                                              format(self._description.lower()), total=total, cancellable=True,
-                                             log_level="debug")
+                                             log_level="info")
         else:
             return extracted
 
