@@ -63,7 +63,8 @@ class Base(models.AbstractModel):
         percent = max(min(percent, 100), 0)
         recur_depth = web_progress_obj._get_recur_depth(code)
         params = dict(code=code,
-                      percent=percent,
+                      progress=percent,
+                      done=percent,
                       total=100,
                       state=percent >= 100 and 'done' or 'ongoing',
                       msg=msg,

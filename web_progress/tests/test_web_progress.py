@@ -96,3 +96,13 @@ class WebProgressTest(common.SavepointCase):
         # any further iteration shall not change a cancelled state
         self._check_web_progress_iter_recordset_many(0)
         self._check_web_progress_cancelled()
+
+    def test_web_progress_percent(self):
+        """
+        Check web_progress_percent
+        """
+        progress_code = str(uuid.uuid4())
+        self.partner_ids = self.partner_ids.with_context(progress_code=progress_code)
+        self.partner_ids.web_progress_percent(0, "Start")
+        self.partner_ids.web_progress_percent(50, "Middle")
+        self.partner_ids.web_progress_percent(100, "End")
