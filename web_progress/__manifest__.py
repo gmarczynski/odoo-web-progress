@@ -11,7 +11,7 @@
     # """,
 
     'author': "Grzegorz Marczyński",
-    'category': 'UI',
+    'category': 'Productivity',
 
     'version': '1.0',
 
