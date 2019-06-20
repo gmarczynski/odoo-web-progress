@@ -52,10 +52,27 @@ Then a progress-reporting-ready version would be:
     @api.multi
     def action_operation(self):
         for rec in self.web_progress_iter(self, msg="Message"):
-            rec.do_somethig()
+            rec.do_something()
 
 
+or a simpler version for recordsets:
+
+.. code-block::
+
+    @api.multi
+    def action_operation(self):
+        for rec in self.with_progress(msg="Message"):
+            rec.do_something()
+
+Progress tracking may be added to sub-operations as well:
+
+.. code-block::
+
+    @api.multi
+    def action_operation(self):
+        for rec in self.with_progress(msg="Message"):
+            lines = rec.get_lines()
+            for line in lines.with_progress("Sub-operation")
+                line.do_something()
 
 
-
- 

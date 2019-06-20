@@ -26,9 +26,8 @@ class WebProgressTest(common.SavepointCase):
         Check that web_progress_iter works correctly for a recordset
         :param total: total number of collection elements
         """
-        progress_iter = self.partner_obj.web_progress_iter(self.partner_ids[:total],
-                                                           msg="Total {} Level {}".format(total,
-                                                                                          recur_level))
+        progress_iter = self.partner_ids[:total].with_progress(msg="Total {} Level {}".format(total,
+                                                                                              recur_level))
         self.assertEqual(len(progress_iter), total, msg="Length shall be accessible")
         if total > 0:
             self.assertEqual(progress_iter[0], self.partner_ids[0], msg="Indexing shall be accessible")
@@ -64,7 +63,7 @@ class WebProgressTest(common.SavepointCase):
         """
         Checks that the current operation has been cancelled
         """
-        code = self.partner_obj._context.get('progress_code', None)
+        code = self.partner_ids._context.get('progress_code', None)
         self.assertIsNotNone(code, msg="Progress code shall be in the context")
         cancelled = self.web_progress_obj._check_cancelled(dict(code=code))
         self.assertTrue(cancelled, msg="Currect operation should have been cancelled")
@@ -81,7 +80,7 @@ class WebProgressTest(common.SavepointCase):
         Check that web_progress_iter works correctly with a progress_code in context
         """
         progress_code = str(uuid.uuid4())
-        self.partner_obj = self.partner_obj.with_context(progress_code=progress_code)
+        self.partner_ids = self.partner_ids.with_context(progress_code=progress_code)
         self._check_web_progress_iter_recordset_many(0)
         self._check_web_progress_iter_recordset_many(1)
 
@@ -90,9 +89,9 @@ class WebProgressTest(common.SavepointCase):
         Check that cancel request is respected by web_progress_iter
         """
         progress_code = str(uuid.uuid4())
-        self.partner_obj = self.partner_obj.with_context(progress_code=progress_code)
+        self.partner_ids = self.partner_ids.with_context(progress_code=progress_code)
         self._check_web_progress_iter_recordset_many(0)
-        self.partner_obj.web_progress_cancel()
+        self.partner_ids.web_progress_cancel()
         self._check_web_progress_cancelled()
         # any further iteration shall not change a cancelled state
         self._check_web_progress_iter_recordset_many(0)
