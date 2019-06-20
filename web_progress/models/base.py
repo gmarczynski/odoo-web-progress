@@ -34,6 +34,18 @@ class Base(models.AbstractModel):
     # Progress reporting
     #
 
+    @api.multi
+    def with_progress(self, msg='', total=None, cancellable=True, log_level="info"):
+        """
+        Wrap self (current recordset) with progress reporting generator
+        :param msg: msg to mass in progress report
+        :param total: provide total directly to avoid calling len on data (which fails on generators)
+        :param cancellable: indicates whether the operation is cancellable
+        :param log_level: log level to use when logging progress
+        :return: yields every element of data
+        """
+        return self.web_progress_iter(self, msg=msg, total=total, cancellable=cancellable, log_level=log_level)
+
     @api.model
     def web_progress_percent(self, percent, msg='', cancellable=True, log_level="info"):
         """
@@ -87,7 +99,7 @@ class Base(models.AbstractModel):
                                                                                    total=total,
                                                                                    cancellable=cancellable,
                                                                                    log_level=log_level),
-                                         total or len(data),
+                                         total,
                                          data)
 
     def web_progress_cancel(self, code=None):
