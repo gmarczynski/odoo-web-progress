@@ -1,6 +1,6 @@
-==================
-Odoo Progress Bar
-==================
+====================
+Dynamic Progress Bar
+====================
 
 Progress bar for Odoo waiting screen, possibility to cancel an ongoing operation and a sys tray menu for all operations in progress.
 
@@ -75,4 +75,12 @@ Progress tracking may be added to sub-operations as well:
             for line in lines.with_progress("Sub-operation")
                 line.do_something()
 
+Relese Notes
+------------
 
+1.1 - 2019-06-23 - fixes:
+
+- remove unecessary dependency on multiprocessing
+- fix memory leak in time-tracking internal data
+
+1.0 - 2019-06-20 - initial version
