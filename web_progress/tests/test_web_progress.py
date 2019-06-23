@@ -1,6 +1,8 @@
 from odoo.tests import common
+from odoo import exceptions
 import uuid
 import logging
+from ..models.web_progress import last_report_time
 
 _logger = logging.getLogger(__name__)
 
@@ -8,6 +10,12 @@ _logger = logging.getLogger(__name__)
 class WebProgressTest(common.SavepointCase):
     at_install = True
     post_install = False
+
+    def check_all_progress_data_empty(self):
+        """
+        Check that all global progress data is empty after tests
+        """
+        self.assertFalse(last_report_time, msg="Global variable last_report_time shall be empty by now")
 
     def setUp(self):
         super(WebProgressTest, self).setUp()
@@ -20,6 +28,7 @@ class WebProgressTest(common.SavepointCase):
             self.partner_vals[idx] = dict(name='Test{}'.format(idx),
                                           email='email{}@test.me'.format(idx))
             self.partner_ids |= self.partner_obj.create(dict(self.partner_vals[idx]))
+        self.addCleanup(self.check_all_progress_data_empty)
 
     def _check_web_progress_iter_recordset(self, total, recur_level=0):
         """
@@ -93,8 +102,9 @@ class WebProgressTest(common.SavepointCase):
         self._check_web_progress_iter_recordset_many(0)
         self.partner_ids.web_progress_cancel()
         self._check_web_progress_cancelled()
-        # any further iteration shall not change a cancelled state
-        self._check_web_progress_iter_recordset_many(0)
+        # any further iteration shall raise UserError
+        with self.assertRaises(exceptions.UserError, msg="Exception UserErro shall have been raised"):
+            self._check_web_progress_iter_recordset_many(0)
         self._check_web_progress_cancelled()
 
     def test_web_progress_percent(self):

@@ -1,9 +1,8 @@
 # Part of web_progress. See LICENSE file for full copyright and licensing details.
 from odoo import models, api, registry, fields, _, SUPERUSER_ID
 from odoo.exceptions import UserError
-from multiprocessing import RLock
+from threading import RLock
 from datetime import datetime, timedelta
-import threading
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -239,10 +238,16 @@ class WebProgress(models.TransientModel):
         return False
 
     def _get_parent_codes(self, params):
+        """
+        Get list of precise codes of all parents
+        """
         code = params.get('code')
         return [code + '##' + str(d) for d in range(params.get('recur_depth'))]
 
     def _get_precise_code(self, params):
+        """
+        Get precise code, i.e. progress code + recurency depth level
+        """
         return params.get('code') + '##' + str(params.get('recur_depth'))
 
     def _report_progress_do_percent(self, params):
@@ -292,6 +297,7 @@ class WebProgress(models.TransientModel):
         params['progress'] = 100
         params['done'] = params['total']
         params['state'] = 'done'
+        code = params.get('code')
         if params.get('iter_depth'):
             # done sub-level progress, lazy report
             ret = self._report_progress_do_percent(params)
@@ -299,7 +305,11 @@ class WebProgress(models.TransientModel):
             # done main-level progress, report immediatelly
             self._progress_data[precise_code] = dict(params)
             ret = self._report_progress_store(params)
-        # remove data for this code
+            with lock:
+                # remove last report time for this code
+                if code in last_report_time:
+                    del last_report_time[code]
+        # remove data for this precise code code
         with lock:
             if precise_code in self._progress_data:
                 del self._progress_data[precise_code]
