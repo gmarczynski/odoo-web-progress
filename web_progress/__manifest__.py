@@ -13,7 +13,7 @@
     'author': "Grzegorz Marczyński",
     'category': 'Productivity',
 
-    'version': '11.0.1.2',
+    'version': '12.0.1.2',
 
     'depends': ['web',
                 'bus',
