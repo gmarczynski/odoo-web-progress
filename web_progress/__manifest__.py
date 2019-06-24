@@ -13,7 +13,7 @@
     'author': "Grzegorz Marczyński",
     'category': 'UI',
 
-    'version': '1.1',
+    'version': '11.0.1.2',
 
     'depends': ['web',
                 'bus',
