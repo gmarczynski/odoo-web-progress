@@ -81,7 +81,7 @@ Release Notes
 1.2 - 2019-06-24 - fixes:
 
 - refactor global progress data
-- rename progress template name to avoid clash with progressbar widget
+- change progress template name to avoid clash with progressbar widget
 
 1.1 - 2019-06-23 - fixes:
 
