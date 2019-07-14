@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-13 22:04+0000\n"
-"PO-Revision-Date: 2019-06-13 22:04+0000\n"
+"POT-Creation-Date: 2019-07-14 23:27+0000\n"
+"PO-Revision-Date: 2019-07-14 23:27+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -42,6 +42,7 @@ msgstr "Annulé"
 #. module: web_progress
 #. openerp-web
 #: code:addons/web_progress/static/src/js/progress_bar.js:121
+#: code:addons/web_progress/static/src/js/progress_bar.js:124
 #, python-format
 msgid "Cancelling..."
 msgstr "Annulation..."
@@ -73,12 +74,19 @@ msgid "Done"
 msgstr "Terminé"
 
 #. module: web_progress
-#: model:ir.model.fields,field_description:web_progress.field_web_progress_id
-msgid "ID"
-msgstr "Identifiant"
+#. openerp-web
+#: code:addons/web_progress/static/src/js/progress_bar.js:75
+#, python-format
+msgid "Est. time left: "
+msgstr "Temps restant estimé : "
 
 #. module: web_progress
-#: code:addons/web_progress/models/base.py:107
+#: model:ir.model.fields,field_description:web_progress.field_web_progress_id
+msgid "ID"
+msgstr "ID"
+
+#. module: web_progress
+#: code:addons/web_progress/models/base.py:126
 #, python-format
 msgid "Iterating on model {}"
 msgstr "Itération sur modèle {}"
@@ -121,7 +129,8 @@ msgid "Operation Progress"
 msgstr "Avancement de l'opération"
 
 #. module: web_progress
-#: code:addons/web_progress/models/web_progress.py:276
+#: code:addons/web_progress/models/web_progress.py:283
+#: code:addons/web_progress/models/web_progress.py:330
 #, python-format
 msgid "Operation has been cancelled by"
 msgstr "L'opération a été annulée par"
@@ -133,6 +142,11 @@ msgstr "L'opération a été annulée par"
 #, python-format
 msgid "Progress"
 msgstr "Avancement"
+
+#. module: web_progress
+#: model:ir.model.fields,field_description:web_progress.field_web_progress_progress_total
+msgid "Progress Total"
+msgstr "Progrès total"
 
 #. module: web_progress
 #: model:ir.model.fields,field_description:web_progress.field_web_progress_recur_depth
@@ -147,6 +161,7 @@ msgstr "Actions planifiées"
 #. module: web_progress
 #. openerp-web
 #: code:addons/web_progress/static/src/js/progress_bar.js:166
+#: code:addons/web_progress/static/src/js/progress_bar.js:169
 #, python-format
 msgid "Stalled"
 msgstr "Bloqué"
@@ -154,6 +169,7 @@ msgstr "Bloqué"
 #. module: web_progress
 #. openerp-web
 #: code:addons/web_progress/static/src/js/progress_bar.js:156
+#: code:addons/web_progress/static/src/js/progress_bar.js:159
 #, python-format
 msgid "Stalling..."
 msgstr "Retardement..."
@@ -162,6 +178,11 @@ msgstr "Retardement..."
 #: model:ir.model.fields,field_description:web_progress.field_web_progress_state
 msgid "State"
 msgstr "Status"
+
+#. module: web_progress
+#: model:ir.model.fields,field_description:web_progress.field_web_progress_time_left
+msgid "Time Left"
+msgstr "Temps restant"
 
 #. module: web_progress
 #: model:ir.model.fields,field_description:web_progress.field_web_progress_total
@@ -176,13 +197,13 @@ msgid "Yes"
 msgstr "Oui"
 
 #. module: web_progress
-#: code:addons/web_progress/models/base.py:137
+#: code:addons/web_progress/models/base.py:156
 #, python-format
 msgid "exporting batches of 1000 lines"
 msgstr "exportation de lots de 1000 lignes"
 
 #. module: web_progress
-#: code:addons/web_progress/models/base.py:120
+#: code:addons/web_progress/models/base.py:139
 #, python-format
 msgid "importing to {}"
 msgstr "l'importation à {}"
