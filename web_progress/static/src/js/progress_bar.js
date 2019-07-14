@@ -71,6 +71,9 @@ var ProgressBar = Widget.extend({
             level += '▶';
             });
         progress_html += '</div>';
+        if (top_progress['time_left']) {
+            progress_html = '<div class="text-left">' + _t("Est. time left: ") + top_progress['time_left'] + '</div>' + progress_html;
+        }
         self.$progress_frame.css("visibility", 'visible');
         if (self.$spin_container) {
             // this is main progress bar
