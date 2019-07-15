@@ -32,6 +32,8 @@ class WebProgress(models.TransientModel):
     done = fields.Integer("Done")
     total = fields.Integer("Total")
     time_left = fields.Char("Time Left")
+    time_total = fields.Char("Time Total")
+    time_elapsed = fields.Char("Elapsed Time")
     state = fields.Selection([('ongoing', "Ongoing"),
                               ('done', "Done"),
                               ('cancel', "Cancelled"),
@@ -84,6 +86,8 @@ class WebProgress(models.TransientModel):
             'done': progress_id.done,
             'total': progress_id.total,
             'time_left': progress_id.time_left,
+            'time_total': progress_id.time_total,
+            'time_elapsed': progress_id.time_elapsed,
             'state': progress_id.state,
             'cancellable': progress_id.cancellable,
             'uid': progress_id.create_uid.id,
