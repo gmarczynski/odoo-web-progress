@@ -258,25 +258,37 @@ class WebProgress(models.TransientModel):
         """
         return params.get('code') + '##' + str(params.get('recur_depth'))
 
+    def _format_time(self, seconds):
+        """
+        Format seconds in h:mm:ss format
+        :param seconds: number of seconds
+        :return: (str) time left in h:mm:ss format
+        """
+        ts_min, ts_sec = divmod(int(seconds), 60)
+        ts_hour, ts_min = divmod(ts_min, 60)
+        ret = "{}:{:0>2d}:{:0>2d}".format(ts_hour, ts_min, ts_sec)
+        return ret
+        
     def _get_time_left(self, params, time_now, first_ts):
         """
-        Compute time left
+        Compute est. time left and total
         :param params: params of progress
         :param time_now: datetime of now
         :param first_ts: datetime of first progress report
-        :return: (str) time left in h:mm:ss format
+        :return: (pair of str) time left in h:mm:ss format and time total of operation
         """
         time_left = ''
+        time_total = ''
+        time_elapsed = ''
         if first_ts:
-            change = params.get('progress_total', 0)
-            if change > 0:
-                time_per_percent = (time_now - first_ts) / change
-                progress_left = 100.0 - params.get('progress_total', 0)
-                time_left = int(progress_left * time_per_percent.total_seconds())
-                time_left_min, time_left_sec = divmod(time_left, 60)
-                time_left_hour, time_left_min = divmod(time_left_min, 60)
-                time_left = "{}:{:0>2d}:{:0>2d}".format(time_left_hour, time_left_min, time_left_sec)
-        return time_left
+            pogress_total = params.get('progress_total', 0)
+            if pogress_total > 0:
+                time_per_percent = (time_now - first_ts) / pogress_total
+                progress_left = 100.0 - pogress_total
+                time_left = self._format_time(progress_left * time_per_percent.total_seconds())
+                time_total = self._format_time(100.0 * time_per_percent.total_seconds())
+                time_elapsed = self._format_time((time_now - first_ts).total_seconds())
+        return time_left, time_total, time_elapsed
 
     def _get_progress_total(self, params):
         """
@@ -330,14 +342,15 @@ class WebProgress(models.TransientModel):
         code = params.get('code')
         precise_code = self._get_precise_code(params)
         time_now = datetime.now()
-        first_ts = None
         with lock:
-            last_ts = last_report_time.get(code)
-            if not last_ts:
-                last_ts = (time_now - timedelta(seconds=self._progress_period_secs + 1))
+            first_ts = first_report_time.get(code)
+            if not first_ts:
                 first_report_time[code] = time_now
             else:
                 first_ts = first_report_time.get(code)
+            last_ts = last_report_time.get(code)
+            if not last_ts:
+                last_ts = (time_now - timedelta(seconds=self._progress_period_secs + 1))
             progress_data[precise_code] = dict(params)
             progress_total = self._get_progress_total(params)
             self._set_attrib_for_all(params, 'progress_total', progress_total)
@@ -348,9 +361,13 @@ class WebProgress(models.TransientModel):
                 user_id = self._check_cancelled(params)
                 if user_id:
                     raise UserError(_("Operation has been cancelled by") + " " + user_id.name)
-            time_left = self._get_time_left(params, time_now, first_ts)
+            time_left, time_total, time_elapsed = self._get_time_left(params, time_now, first_ts)
             if time_left:
                 self._set_attrib_for_all(params, 'time_left', time_left)
+            if time_total:
+                self._set_attrib_for_all(params, 'time_total', time_total)
+            if time_elapsed:
+                self._set_attrib_for_all(params, 'time_elapsed', time_elapsed)
             self._report_progress_store(params)
             with lock:
                 last_report_time[code] = time_now
@@ -371,11 +388,11 @@ class WebProgress(models.TransientModel):
         params['done'] = params['total']
         params['state'] = 'done'
         code = params.get('code')
-        if params.get('iter_depth'):
+        if params.get('recur_depth'):
             # done sub-level progress, lazy report
             ret = self._report_progress_do_percent(params)
         else:
-            # done main-level progress, report immediatelly
+            # done main-level progress, report immediately
             progress_data[precise_code] = dict(params)
             ret = self._report_progress_store(params)
             with lock:
@@ -432,6 +449,10 @@ class WebProgress(models.TransientModel):
                     "Progress {code} total {progress_total:.02f}%". format(**my_progress_data)
                 if "time_left" in my_progress_data:
                     log_message_pre += ", est. time left {}".format(my_progress_data.get('time_left'))
+                if "time_total" in my_progress_data:
+                    log_message_pre += ", est. time total {}".format(my_progress_data.get('time_total'))
+                if "time_elapsed" in my_progress_data:
+                    log_message_pre += ", elapsed time {}".format(my_progress_data.get('time_elapsed'))
                 logger_cmd(log_message_pre)
             logger_cmd(log_message)
             vals_list.append(self._report_progress_prepare_vals(my_progress_data))
