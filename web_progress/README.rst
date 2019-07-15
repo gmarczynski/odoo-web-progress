@@ -78,6 +78,11 @@ Progress tracking may be added to sub-operations as well:
 Release Notes
 -------------
 
+1.3 - 2019-07-15 - new functionality
+
+- estimated time left / total
+
+
 1.2 - 2019-06-24 - fixes:
 
 - refactor global progress data

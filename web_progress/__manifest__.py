@@ -11,12 +11,13 @@
     # """,
 
     'author': "Grzegorz Marczyński",
-    'category': 'UI',
+    'category': 'Productivity',
 
-    'version': '11.0.1.2',
+    'version': '11.0.1.3',
 
     'depends': ['web',
                 'bus',
+                'base_import'
                 ],
 
     'data': [
