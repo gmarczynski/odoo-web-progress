@@ -55,6 +55,7 @@ var ProgressBar = Widget.extend({
             return;
         }
         var progress_html = '<div class="text-left">';
+        var progress_time_html = '';
         var progress = 0.0;
         var progress_total = 100;
         var cancellable = true;
@@ -73,7 +74,13 @@ var ProgressBar = Widget.extend({
             });
         progress_html += '</div>';
         if (top_progress['time_left']) {
-            progress_html = '<div class="text-left">' + _t("Est. time left: ") + top_progress['time_left'] + '</div>' + progress_html;
+            progress_time_html += _t("Est. time left: ") + top_progress['time_left']
+        }
+        if (top_progress['time_total']) {
+            progress_time_html += " / " + top_progress['time_total']
+        }
+        if (progress_time_html) {
+            progress_html = '<div class="text-left">' + progress_time_html + '</div>' + progress_html;
         }
         self.$progress_frame.css("visibility", 'visible');
         if (self.$spin_container) {
