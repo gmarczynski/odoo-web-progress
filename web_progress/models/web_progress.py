@@ -371,7 +371,7 @@ class WebProgress(models.TransientModel):
         params['done'] = params['total']
         params['state'] = 'done'
         code = params.get('code')
-        if params.get('iter_depth'):
+        if params.get('recur_depth'):
             # done sub-level progress, lazy report
             ret = self._report_progress_do_percent(params)
         else:
