@@ -350,8 +350,6 @@ class WebProgress(models.TransientModel):
             first_ts = first_report_time.get(code)
             if not first_ts:
                 first_report_time[code] = time_now
-            else:
-                first_ts = first_report_time.get(code)
             last_ts = last_report_time.get(code)
             if not last_ts:
                 last_ts = (time_now - timedelta(seconds=self._progress_period_secs + 1))
