@@ -1,4 +1,4 @@
-![Progress Bar](https://raw.githubusercontent.com/gmarczynski/odoo-web-progress/11.0/web_progress/static/description/progress_bar_loading.gif)
+![Progress Bar](https://raw.githubusercontent.com/gmarczynski/odoo-web-progress/11.0/web_progress/static/description/progress_bar_loading_cancelling.gif)
 
 # Odoo module web_progress
 
