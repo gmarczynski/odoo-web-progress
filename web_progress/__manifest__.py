@@ -31,8 +31,9 @@
 
     'demo': [
     ],
-    'images': ['static/description/progress_bar_loading_systray.gif',
+    'images': ['static/description/progress_bar_loading_compact.gif',
                'static/description/progress_bar_loading_cancelling.gif',
+               'static/description/progress_bar_loading_systray.gif',
                ],
 
     'license': 'LGPL-3',
