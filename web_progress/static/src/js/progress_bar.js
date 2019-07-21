@@ -15,7 +15,7 @@ var session = require('web.session');
 var _t = core._t;
 var QWeb = core.qweb;
 var progress_timeout = progress_loading.progress_timeout;
-var progress_timeout_warn = progress_timeout*2;
+var progress_timeout_warn = progress_timeout*10;
 var framework_blockUI = framework.blockUI;
 var framework_unblockUI = framework.unblockUI;
 
@@ -128,8 +128,12 @@ var ProgressBar = Widget.extend({
     _confirmCancelYes: function () {
         var self = this;
         core.bus.trigger('rpc_progress_cancel', self.progress_code);
-        self.$progress_cancel.css("display", 'none');
-        self.$progress_message.html(_t("Cancelling..."));
+        self.$progress_cancel.html(_t("Cancelling..."));
+        if (this.systray) {
+            self.$progress_cancel.addClass('o_cancel_message_systray');
+        } else {
+            self.$progress_cancel.addClass('o_progress_message');
+        }
     },
     _normalCancel: function () {
         var self = this;
@@ -156,15 +160,15 @@ var ProgressBar = Widget.extend({
     _cancelTimeout: function () {
         if (this.progress_timer) {
             this.$progress_bar.removeClass('o_progress_bar_timeout');
+            this.$progress_bar.removeClass('o_progress_bar_timeout_destroy');
             clearTimeout(this.progress_timer);
             this.progress_timer = false;
         }
     },
     _notifyTimeoutWarn: function () {
         var self = this;
+        this.$progress_bar.removeClass('o_progress_bar_timeout_destroy');
         this.$progress_bar.addClass('o_progress_bar_timeout');
-        this.$progress_cancel.html('');
-        this.$progress_message.html(_t('Stalling...'));
         this.progress_timer = setTimeout(function () {
             self._notifyTimeoutDestr();
         }, progress_timeout_warn);
@@ -173,8 +177,6 @@ var ProgressBar = Widget.extend({
         var self = this;
         this.$progress_bar.removeClass('o_progress_bar_timeout');
         this.$progress_bar.addClass('o_progress_bar_timeout_destroy');
-        this.$progress_cancel.html('');
-        this.$progress_message.html(_t('Stalled'));
         this.progress_timer = setTimeout(function () {
             core.bus.trigger('rpc_progress_destroy', self.progress_code);
         }, progress_timeout_warn);

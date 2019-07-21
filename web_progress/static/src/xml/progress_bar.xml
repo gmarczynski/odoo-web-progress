@@ -15,7 +15,7 @@
         <div>
             <div id="progress_user" class="o_progress_user" style="visibility:hidden"/>
             <div id="progress_frame" style="visibility:hidden">
-                <div id="progress_bar"/>
+                <div id="progress_bar" style="width: 0%"/>
             </div>
             <div id="progress_cancel"/>
             <div id="progress_message" class="o_progress_message"/>

@@ -19,10 +19,12 @@
 }
 
 #progress_bar.o_progress_bar_timeout {
-    background-color: #EE9900;
+    transition: background-color 50s ease;
+    background-color: yellow;
 }
 
 #progress_bar.o_progress_bar_timeout_destroy {
+    transition: background-color 50s ease;
     background-color: red;
 }
 
