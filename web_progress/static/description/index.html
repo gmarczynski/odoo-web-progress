@@ -17,7 +17,7 @@
     </div>
     <img src="progress_bar_loading_cancelling.gif" width="100%" align="center"/>
     <img src="progress_bar_loading_systray.gif" width="50%" align="right"
-         style="margin:20px;"/>
+         style="margin-left:20px; margin-top:20px; margin-bottom:20px;"/>
     <p><strong>web_progress</strong> exists for Odoo 11.0 and 12.0 (CE and EE).</p>
     <p>Author: Grzegorz Marczyński</p>
     <p>License: LGPL-3.</p>
@@ -67,7 +67,7 @@
 
     @api.multi
     def action_operation(self):
-            for rec in self.<b>with_progress</b>(msg="Message"):
+        for rec in self.<b>with_progress</b>(msg="Message"):
             rec.do_something()
         </pre>
 
@@ -77,7 +77,7 @@
 
     @api.multi
     def action_operation(self):
-            for rec in self.<b>with_progress</b>(msg="Message"):
+        for rec in self.<b>with_progress</b>(msg="Message"):
             lines = rec.get_lines()
             for line in lines.<b>with_progress</b>("Sub-operation")
                 line.do_something()
