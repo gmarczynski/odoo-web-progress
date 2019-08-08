@@ -15,6 +15,7 @@ Progress bar for Odoo waiting screen, possibility to cancel an ongoing operation
 **web_progress** exists for Odoo 11.0 and 12.0 (CE and EE).
 
 Author: Grzegorz Marczyński
+Contributor: Guenter Selbert
 
 License: LGPL-3.
 
@@ -77,6 +78,11 @@ Progress tracking may be added to sub-operations as well:
 
 Release Notes
 -------------
+
+1.3 - 2019-08-08 - features:
+
+- add progress iterator to read_group to allow to skip grouping on time cost result sets in graph or pivot views
+- changed the default color of progressbar to odoo's ci secondary color
 
 1.2 - 2019-06-24 - fixes:
 

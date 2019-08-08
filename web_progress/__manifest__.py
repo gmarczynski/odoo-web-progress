@@ -10,7 +10,7 @@
     # Try to import some CSV file to any model to see it in action.
     # """,
 
-    'author': "Grzegorz Marczyński",
+    'author': "Grzegorz Marczyński, Guenter Selbert (Contributor)",
     'category': 'UI',
 
     'version': '11.0.1.2',

@@ -164,3 +164,8 @@ class Base(models.AbstractModel):
                 ret += super(Base, sub)._export_rows(fields, batch_invalidate=False)
             return ret
         return super(Base, self)._export_rows(fields, batch_invalidate=batch_invalidate)
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        read_group_progress = super(Base, self.with_context(progress_iter=True)).read_group
+        return read_group_progress(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
