@@ -10,10 +10,10 @@
     # Try to import some CSV file to any model to see it in action.
     # """,
 
-    'author': "Grzegorz Marczyński",
+    'author': "Grzegorz Marczyński, Guenter Selbert (Contributor)",
     'category': 'Productivity',
 
-    'version': '11.0.1.3',
+    'version': '11.0.1.4',
 
     'depends': ['web',
                 'bus',
