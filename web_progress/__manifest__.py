@@ -13,7 +13,7 @@
     'author': "Grzegorz Marczyński",
     'category': 'Productivity',
 
-    'version': '13.0.1.3',
+    'version': '14.0.1.3',
 
     'depends': ['web',
                 'bus',
@@ -22,6 +22,7 @@
 
     'data': [
         'views/templates.xml',
+        'security/ir.model.access.csv',
     ],
 
     'qweb': [
