@@ -3,6 +3,9 @@ from odoo import models, api, registry, fields, _, SUPERUSER_ID
 from odoo.exceptions import UserError
 from threading import RLock
 from datetime import datetime, timedelta
+from collections import defaultdict
+import odoo
+import json
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -14,7 +17,13 @@ first_report_time = {}
 # store recursion depth for every operation
 recur_depths = {}
 # progress reports data
-progress_data = {}
+progress_data = defaultdict(dict)
+# user name
+user_name = {}
+
+
+def json_dump(v):
+    return json.dumps(v, separators=(',', ':'))
 
 
 class WebProgress(models.TransientModel):
@@ -58,6 +67,18 @@ class WebProgress(models.TransientModel):
         self._create_progress([vals], notify=False)
 
     @api.model
+    def get_user_name(self, code):
+        """
+        Cache user name to avoid SELECT queries touching potentially locked tables
+        res_users and res_partner on progress reporting.
+        :param user_id: (int) ID of res.users record
+        :return: (str) User Name
+        """
+        with lock:
+            # use cached user name
+            return user_name.get(code, '')
+
+    @api.model
     def get_progress(self, code=None, recur_depth=None):
         """
         Get progress for given code
@@ -91,7 +112,7 @@ class WebProgress(models.TransientModel):
             'state': progress_id.state,
             'cancellable': progress_id.cancellable,
             'uid': progress_id.create_uid.id,
-            'user': progress_id.create_uid.name,
+            'user': self.get_user_name(code) or progress_id.create_uid.name,
         }
         # register this operation progress
         result.append(progress_vals)
@@ -105,7 +126,7 @@ class WebProgress(models.TransientModel):
         """
         query = """
         SELECT DISTINCT
-        FIRST_VALUE(CASE WHEN state = 'ongoing' AND done != total THEN id END) 
+        FIRST_VALUE(CASE WHEN state = 'ongoing' AND done != total THEN id END)
             OVER (PARTITION BY code ORDER BY create_date DESC, recur_depth DESC) AS id
         FROM web_progress
         WHERE recur_depth = 0 {user_id}
@@ -172,10 +193,13 @@ class WebProgress(models.TransientModel):
                 recur_depths[code] += 1
             else:
                 recur_depths[code] = 1
+                # cache user name at the beginning of the base-level progress
+                user_name[code] = self.env.user.name
         params = dict(done=0, progress=0.0, state='ongoing', code=code, total=total, msg=msg, recur_depth=recur_depth,
                       cancellable=cancellable, log_level=log_level)
         precise_code = self._get_precise_code(params)
-        progress_data[precise_code] = dict(params)
+        with lock:
+            progress_data[precise_code] = dict(params)
         try:
             for done, rec in zip(range(total), data):
                 params['done'] = done
@@ -190,6 +214,9 @@ class WebProgress(models.TransientModel):
                 recur_depths[code] -= 1
                 if not recur_depths[code]:
                     del recur_depths[code]
+                    # destroy user name only at the end of the base-level progress
+                    if code in user_name:
+                        del user_name[code]
 
     @api.model
     def _get_recur_depth(self, code):
@@ -225,8 +252,38 @@ class WebProgress(models.TransientModel):
                 # notify bus
                 if notify:
                     progress_notif = progress_obj.get_progress(code)
-                    new_env['bus.bus'].sendone('web_progress', progress_notif)
+                    progress_obj._bus_send('web_progress', progress_notif)
                 new_env.cr.commit()
+
+    @api.model
+    def _bus_send(self, channel, message):
+        """
+        Copied send message from bus.bus.
+        The garbage collection that occurs in the standard Odoo code may cause deadlocks.
+        Here the garbage collection of 'web.progress' model will execute the garbage collection of 'bus.bus'
+        :param channel: channel name
+        :param message: message to send
+        """
+        notifications = [[channel, message]]
+        channels = set()
+        for channel, message in notifications:
+            channels.add(channel)
+            values = {
+                "channel": json_dump(channel),
+                "message": json_dump(message)
+            }
+            self.env['bus.bus'].sudo().create(values)
+        if channels:
+            # We have to wait until the notifications are commited in database.
+            # When calling `NOTIFY imbus`, some concurrent threads will be
+            # awakened and will fetch the notification in the bus table. If the
+            # transaction is not commited yet, there will be nothing to fetch,
+            # and the longpolling will return no notification.
+            def notify():
+                with odoo.sql_db.db_connect('postgres').cursor() as cr:
+                    cr.execute("notify imbus, %s", (json_dump(list(channels)),))
+
+            self._cr.after('commit', notify)
 
     @api.model
     def _check_cancelled(self, params):
@@ -242,7 +299,7 @@ class WebProgress(models.TransientModel):
                 # use new cursor to check for cancel
                 query = """
                 SELECT create_uid FROM web_progress
-                WHERE code = %s AND state = 'cancel' AND recur_depth = 0 
+                WHERE code = %s AND state = 'cancel' AND recur_depth = 0
                     AND (create_uid = %s OR create_uid = %s)
                 """
                 new_cr.execute(query, (code, self.env.user.id, SUPERUSER_ID))
@@ -274,7 +331,7 @@ class WebProgress(models.TransientModel):
         ts_hour, ts_min = divmod(ts_min, 60)
         ret = "{}:{:0>2d}:{:0>2d}".format(ts_hour, ts_min, ts_sec)
         return ret
-        
+
     def _get_time_left(self, params, time_now, first_ts):
         """
         Compute est. time left and total
@@ -415,7 +472,7 @@ class WebProgress(models.TransientModel):
         """
         Filter out all params that are not web.progress fields
         """
-        vals = {k:v for k,v in params.items() if k in self._fields}
+        vals = {k: v for k, v in params.items() if k in self._fields}
         return vals
 
     def _report_progress_store(self, params):
@@ -450,7 +507,7 @@ class WebProgress(models.TransientModel):
                 logger_cmd = _logger.info
             if first_line and "progress_total" in my_progress_data:
                 log_message_pre = \
-                    "Progress {code} total {progress_total:.02f}%". format(**my_progress_data)
+                    "Progress {code} total {progress_total:.02f}%".format(**my_progress_data)
                 if "time_left" in my_progress_data:
                     log_message_pre += ", est. time left {}".format(my_progress_data.get('time_left'))
                 if "time_total" in my_progress_data:
@@ -463,3 +520,9 @@ class WebProgress(models.TransientModel):
             first_line = False
         self._create_progress(vals_list)
 
+    def unlink(self):
+        """
+        Garbage collect bus.bus together with this model's records.
+        """
+        self.env['bus.bus'].gc()
+        return super().unlink()

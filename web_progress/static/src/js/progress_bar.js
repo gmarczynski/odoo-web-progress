@@ -32,8 +32,8 @@ var ProgressBar = Widget.extend({
         this.cancel_confirm_html = QWeb.render('WebProgressBarCancelConfirm', {});
     },
     start: function() {
-        this.$progress_frame = this.$("#progress_frame"); 
-        this.$progress_message = this.$("#progress_message"); 
+        this.$progress_frame = this.$("#progress_frame");
+        this.$progress_message = this.$("#progress_message");
         this.$progress_cancel = this.$("#progress_cancel");
         this.$progress_bar = this.$("#progress_bar");
         this.$progress_user = this.$("#progress_user");
@@ -99,7 +99,13 @@ var ProgressBar = Widget.extend({
         } else {
             self.$progress_cancel.html('');
         }
-        self.$progress_bar.animate({width: progress + '%'}, progress_timeout);
+        var animation_timeout = progress_timeout
+        if (progress < self.$progress_bar.data('progress')) {
+            // do it immediately if the progress goes backwards
+            animation_timeout = 1;
+        }
+        self.$progress_bar.stop(true, true).animate({width: progress + '%'}, animation_timeout, "linear");
+        self.$progress_bar.data('progress', progress)
         this.$progress_message.html(progress_html);
         self._cancelTimeout();
         self._setTimeout();
