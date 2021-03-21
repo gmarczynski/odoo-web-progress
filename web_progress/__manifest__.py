@@ -12,8 +12,9 @@
 
     'author': "Grzegorz Marczyński",
     'category': 'Productivity',
+    'website': 'https://github.com/gmarczynski/odoo-web-progress',
 
-    'version': '13.0.1.3',
+    'version': '13.0.1.4',
 
     'depends': ['web',
                 'bus',
