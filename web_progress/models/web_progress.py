@@ -25,6 +25,10 @@ user_name = {}
 def json_dump(v):
     return json.dumps(v, separators=(',', ':'))
 
+class RestoreEnvToComputeToWrite(Exception):
+    """
+    Used to restore the towrite and to compute of an old env
+    """
 
 class WebProgress(models.TransientModel):
     _name = 'web.progress'
@@ -241,19 +245,28 @@ class WebProgress(models.TransientModel):
         if not vals_list:
             return
         code = vals_list[0].get('code')
-        with api.Environment.manage():
-            with registry(self.env.cr.dbname).cursor() as new_cr:
-                # Create a new environment with new cursor database
-                new_env = api.Environment(new_cr, self.env.uid, self.env.context)
-                # with_env replace original env for this method
-                progress_obj = self.with_env(new_env)
-                for vals in vals_list:
-                    progress_obj.create(vals)  # isolated transaction to commit
-                # notify bus
-                if notify:
-                    progress_notif = progress_obj.get_progress(code)
-                    progress_obj._bus_send('web_progress', progress_notif)
-                new_env.cr.commit()
+        try:
+            with self.env.clear_upon_failure():
+                with api.Environment.manage():
+                    with registry(self.env.cr.dbname).cursor() as new_cr:
+                        # Create a new environment with a new cursor
+                        new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                        # clear whatever is to be computed or written
+                        # it will be restored later on
+                        new_env.clear()
+                        # with_env replaces the original env for this method
+                        progress_obj = self.with_env(new_env)
+                        progress_obj.create(vals_list)
+                        # notify bus
+                        if notify:
+                            progress_notif = progress_obj.get_progress(code)
+                            progress_obj._bus_send('web_progress', progress_notif)
+                        # isolated transaction to commit
+                        new_env.cr.commit()
+                        # restore main transaction's data
+                        raise RestoreEnvToComputeToWrite
+        except RestoreEnvToComputeToWrite:
+            pass
 
     @api.model
     def _bus_send(self, channel, message):
