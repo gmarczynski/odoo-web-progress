@@ -21,7 +21,7 @@
     <p><strong>web_progress</strong> exists for Odoo 11.0, 12.0, 13.0 and 14.0 (CE and EE).</p>
     <p>Author: Grzegorz Marczyński</p>
     <p>License: LGPL-3.</p>
-    <p>Copyright © 2020 Grzegorz Marczyński</p>
+    <p>Copyright © 2021 Grzegorz Marczyński</p>
     <div>
 
         <h2>Features</h2>
@@ -85,6 +85,12 @@
 
 
         <h2>Release Notes</h2>
+        <b>1.4</b> - 2021-03-21 - fixes:
+        <ul>
+            <li> fix deadlock on bus.bus garbage collection</li>
+            <li> fix deadlock on access to res.users</li>
+            <li> do not animate but set the progress bar going backwards</li>
+        </ul>
         <b>1.3</b> - 2020-10-05 - ported to Odoo 14.0
         <p></p>
         <b>1.3</b> - 2019-10-03 - ported to Odoo 13.0
