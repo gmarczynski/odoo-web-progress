@@ -296,7 +296,7 @@ class WebProgress(models.TransientModel):
                 with odoo.sql_db.db_connect('postgres').cursor() as cr:
                     cr.execute("notify imbus, %s", (json_dump(list(channels)),))
 
-            self._cr.after('commit', notify)
+            self._cr.postcommit.add(notify)
 
     @api.model
     def _check_cancelled(self, params):
