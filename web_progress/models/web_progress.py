@@ -4,6 +4,7 @@ from odoo.exceptions import UserError
 from threading import RLock
 from datetime import datetime, timedelta
 from collections import defaultdict
+import html
 import odoo
 import json
 import logging
@@ -100,7 +101,7 @@ class WebProgress(models.TransientModel):
             for parent_depth in range(progress_id.recur_depth):
                 result += self.get_progress(code, recur_depth=parent_depth)
         progress_vals = {
-            'msg': progress_id.msg,
+            'msg': html.escape(progress_id.msg),
             'code': progress_id.code,
             'progress': progress_id.progress,
             'progress_total': progress_id.progress_total,

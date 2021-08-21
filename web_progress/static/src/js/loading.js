@@ -30,8 +30,11 @@ Loading.include({
         }
         this._super();
     },
-    notifyProgressCode: function(progress_code) {
+    notifyProgressCode: function(progress_code, retries=1) {
         core.bus.trigger('rpc_progress_set_code', progress_code);
+        if (retries > 1) {
+            this.addProgress(progress_code, retries - 1)
+        }
     },
     getProgressViaRPC: function(progress_code) {
         var self = this;
@@ -66,11 +69,11 @@ Loading.include({
                 args: [progress_code]
             }, {'shadow': true}).then(function() {})
     },
-    addProgress: function(progress_code) {
+    addProgress: function(progress_code, retries=40) {
         var self = this;
         this.progress_timers[progress_code] = setTimeout(function () {
-            self.notifyProgressCode(progress_code);
-        }, progress_timeout);
+            self.notifyProgressCode(progress_code, retries);
+        }, progress_timeout/20);
     },
     removeProgress: function(progress_code) {
         if (progress_code in this.progress_timers) {
