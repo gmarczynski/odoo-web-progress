@@ -15,10 +15,10 @@
         <div id="progress_outline" class="modal-content" style="visibility:hidden">
             <div id="progress_style">
                 <button class="dropbtn">▼</button>
-                <div class="dropdown-content">
-                    <a href="#" id="style-classic">classic</a>
-                    <a href="#" id="style-thin">thin</a>
-                    <a href="#" id="style-nyan">nyan cat</a>
+                <div class="progress_style">
+                    <a href="#" id="standard">standard</a>
+                    <a href="#" id="simple">simple</a>
+                    <a href="#" id="nyan">nyan cat</a>
                 </div>
             </div>
             <div id="progress_user" class="o_progress_user" style="visibility:hidden"/>

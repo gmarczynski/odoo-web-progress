@@ -194,8 +194,8 @@ msgstr "Oui"
 #. openerp-web
 #: code:addons/web_progress/static/src/xml/progress_bar.xml:19
 #, python-format
-msgid "classic"
-msgstr "classique"
+msgid "standard"
+msgstr "standard"
 
 #. module: web_progress
 #: code:addons/web_progress/models/base.py:156
@@ -220,5 +220,5 @@ msgstr "nyan cat"
 #. openerp-web
 #: code:addons/web_progress/static/src/xml/progress_bar.xml:20
 #, python-format
-msgid "thin"
+msgid "simple"
 msgstr "simple"

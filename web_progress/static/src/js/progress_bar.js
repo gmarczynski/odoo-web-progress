@@ -25,9 +25,7 @@ var ProgressBar = Widget.extend({
     template: "WebProgressBar",
     progress_timer: false,
     events: {
-        "click #style-classic": "setStyleClassic",
-        "click #style-thin": "setStyleThin",
-        "click #style-nyan": "setStyleNyan",
+        "click .progress_style": "setStyleClick",
     },
     style_localstorage_key: 'web_progress_style',
     init: function(parent, code, $spin_container) {
@@ -63,16 +61,9 @@ var ProgressBar = Widget.extend({
         core.bus.on('rpc_progress_set_code', this, this.defineProgressCode);
         core.bus.on('rpc_progress', this, this.showProgress)
     },
-    setStyleClassic: function(event) {
-        this.setStyle('');
-        event.stopPropagation();
-    },
-    setStyleThin: function(event) {
-        this.setStyle('thin');
-        event.stopPropagation();
-    },
-    setStyleNyan: function(event) {
-        this.setStyle('nyan');
+    setStyleClick: function(event) {
+        name = event.target.id;
+        this.setStyle(name);
         event.stopPropagation();
     },
     setStyle: function(name) {

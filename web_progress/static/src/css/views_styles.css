@@ -40,30 +40,31 @@
 }
 
 /**
- * Style for thin progress bar
+ * Style for simple progress bar
  */
 
 
-#progress_outline.thin {
+#progress_outline.simple {
     padding: 5px;
+    font-size: 10px;
 }
 
-#progress_frame.thin {
+#progress_frame.simple {
     border: 0;
     border-radius: 0;
 }
 
-#progress_bar.thin {
+#progress_bar.simple {
     width: 1%;
     height: 2px;
     border-radius: 0;
 }
 
-#progress_user.thin, #progress_message.thin {
+#progress_user.simple, #progress_message.simple {
     display: none;
 }
 
-#progress_percent.thin {
+#progress_percent.simple {
     font-size: 15px;
 }
 
@@ -83,7 +84,7 @@ Styles menu
     top: 0;
 }
 
-.dropdown-content {
+.progress_style {
     display: none;
     position: absolute;
     background-color: #f1f1f1;
@@ -93,17 +94,17 @@ Styles menu
     font-size: 10px;
 }
 
-.dropdown-content a {
+.progress_style a {
     color: black;
     padding: 1px 1px;
     text-decoration: none;
     display: block;
 }
 
-.dropdown-content a:hover {
+.progress_style a:hover {
     background-color: #ddd;
 }
 
-#progress_style:hover .dropdown-content {
+#progress_style:hover .progress_style {
     display: block;
 }
