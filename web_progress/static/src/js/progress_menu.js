@@ -127,12 +127,13 @@ var ProgressMenu = Widget.extend({
             method: 'get_all_progress',
             args: []
         }, {'shadow': true}).then(function (codes_list) {
-            // console.debug(result_list);
             if (codes_list.length > 0) {
                 _.forEach(codes_list, function (item) {
                     if (item.code) {
                         var pb = self._addProgressBar(item.code);
-                        pb._getProgressViaRPC();
+                        if (pb) {
+                            pb._getProgressViaRPC();
+                        }
                     }
                 })
             }
