@@ -34,7 +34,8 @@ var ProgressMenu = Widget.extend({
                 self._onNotification(notification);
             });
         });
-        this._updateProgressMenu()
+        this._updateProgressMenu();
+        this._queryRecentOperations();
         return this._super();
     },
 
@@ -67,6 +68,7 @@ var ProgressMenu = Widget.extend({
         this.progress_bars[code] = progress_bar;
         progress_bar.appendTo(this.$progresses_preview);
         this._updateProgressMenu();
+        return progress_bar;
     },    
     /**
      * Remove progress bar
@@ -109,6 +111,28 @@ var ProgressMenu = Widget.extend({
         if (session_uid !== 1) {
             this.$el.toggleClass('hidden', !this.progressCounter);
         }
+    },
+    /**
+     * Query server for recent operations in progress
+     * @private
+     */
+    _queryRecentOperations: function() {
+        var self = this;
+        this._rpc({
+            model: 'web.progress',
+            method: 'get_all_progress',
+            args: []
+        }, {'shadow': true}).then(function (codes_list) {
+            // console.debug(result_list);
+            if (codes_list.length > 0) {
+                _.forEach(codes_list, function (item) {
+                    if (item.code) {
+                        var pb = self._addProgressBar(item.code);
+                        pb._getProgressViaRPC();
+                    }
+                })
+            }
+        })
     },
     /**
      * Process and display progress details

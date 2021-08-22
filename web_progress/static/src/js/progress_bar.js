@@ -16,7 +16,7 @@ var localStorage = require('web.local_storage');
 var _t = core._t;
 var QWeb = core.qweb;
 var progress_timeout = progress_loading.progress_timeout;
-var progress_timeout_warn = progress_timeout*10;
+var progress_timeout_warn = progress_timeout*2;
 var framework_blockUI = framework.blockUI;
 var framework_unblockUI = framework.unblockUI;
 
@@ -78,8 +78,10 @@ var ProgressBar = Widget.extend({
         _.invoke(this.all_elements, 'removeClass', name);
     },
     defineProgressCode: function(progress_code) {
+        var self = this;
         if (!this.progress_code) {
             this.progress_code = progress_code;
+            self._getProgressViaRPC();
         }
     },
     showProgress: function(progress_list) {
@@ -212,6 +214,7 @@ var ProgressBar = Widget.extend({
     },
     _notifyTimeoutWarn: function () {
         var self = this;
+        this._getProgressViaRPC();
         this.$progress_bar.removeClass('o_progress_bar_timeout_destroy');
         this.$progress_bar.addClass('o_progress_bar_timeout');
         this.progress_timer = setTimeout(function () {
@@ -226,6 +229,13 @@ var ProgressBar = Widget.extend({
             core.bus.trigger('rpc_progress_destroy', self.progress_code);
         }, progress_timeout_warn);
         self.progress_timer = false;
+    },
+    _getProgressViaRPC: function () {
+        var progress_code = this.progress_code;
+        if (!progress_code) {
+            return;
+        }
+        core.bus.trigger('rpc_progress_refresh', progress_code);
     },
 });
 
