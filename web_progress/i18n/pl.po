@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-15 01:14+0000\n"
-"PO-Revision-Date: 2019-07-15 01:14+0000\n"
+"POT-Creation-Date: 2021-08-21 12:54+0000\n"
+"PO-Revision-Date: 2021-08-21 12:54+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -41,8 +41,8 @@ msgstr "Anulowane"
 
 #. module: web_progress
 #. openerp-web
-#: code:addons/web_progress/static/src/js/progress_bar.js:121
-#: code:addons/web_progress/static/src/js/progress_bar.js:131
+#: code:addons/web_progress/static/src/js/progress_bar.js:136
+#: code:addons/web_progress/static/src/js/progress_bar.js:189
 #, python-format
 msgid "Cancelling..."
 msgstr "Anulowanie..."
@@ -134,8 +134,8 @@ msgid "Operation Progress"
 msgstr "Postęp operacji"
 
 #. module: web_progress
-#: code:addons/web_progress/models/web_progress.py:283
-#: code:addons/web_progress/models/web_progress.py:367
+#: code:addons/web_progress/models/web_progress.py:424
+#: code:addons/web_progress/models/web_progress.py:425
 #, python-format
 msgid "Operation has been cancelled by"
 msgstr "Operacja została anulowana przez"
@@ -162,22 +162,6 @@ msgstr "Głębokość rekursji"
 #: model:ir.model,name:web_progress.model_ir_cron
 msgid "Scheduled Actions"
 msgstr "Zaplanowane akcje"
-
-#. module: web_progress
-#. openerp-web
-#: code:addons/web_progress/static/src/js/progress_bar.js:166
-#: code:addons/web_progress/static/src/js/progress_bar.js:176
-#, python-format
-msgid "Stalled"
-msgstr "Zatrzymany"
-
-#. module: web_progress
-#. openerp-web
-#: code:addons/web_progress/static/src/js/progress_bar.js:156
-#: code:addons/web_progress/static/src/js/progress_bar.js:166
-#, python-format
-msgid "Stalling..."
-msgstr "Wstrzymanie..."
 
 #. module: web_progress
 #: model:ir.model.fields,field_description:web_progress.field_web_progress_state
@@ -207,6 +191,13 @@ msgid "Yes"
 msgstr "Tak"
 
 #. module: web_progress
+#. openerp-web
+#: code:addons/web_progress/static/src/xml/progress_bar.xml:19
+#, python-format
+msgid "standard"
+msgstr "standardowy"
+
+#. module: web_progress
 #: code:addons/web_progress/models/base.py:156
 #, python-format
 msgid "exporting batches of 1000 lines"
@@ -217,3 +208,17 @@ msgstr "eksport partii po 1000 linii"
 #, python-format
 msgid "importing to {}"
 msgstr "importowanie do {}"
+
+#. module: web_progress
+#. openerp-web
+#: code:addons/web_progress/static/src/xml/progress_bar.xml:21
+#, python-format
+msgid "nyan cat"
+msgstr "nyan cat"
+
+#. module: web_progress
+#. openerp-web
+#: code:addons/web_progress/static/src/xml/progress_bar.xml:20
+#, python-format
+msgid "simple"
+msgstr "prosty"
