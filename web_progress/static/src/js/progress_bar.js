@@ -81,6 +81,7 @@ var ProgressBar = Widget.extend({
         var self = this;
         if (!this.progress_code) {
             this.progress_code = progress_code;
+            self._setTimeout();
             self._getProgressViaRPC();
         }
     },
@@ -158,7 +159,6 @@ var ProgressBar = Widget.extend({
         self.$progress_cancel.html(self.cancel_confirm_html);
         self.$progress_cancel.addClass('o_cancel_message');
         if (this.systray) {
-            // self.$progress_cancel.addClass('o_cancel_message_systray');
             self.$progress_cancel.find('.btn').addClass('btn-default');
         } else {
         }
