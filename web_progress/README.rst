@@ -24,18 +24,18 @@ Copyright © 2021 Grzegorz Marczyński
 Features
 --------
 
-- progress reporting for all standard Odoo import and export operations
-- system tray menu that lists ongoing operations initiated by the logged user (all operations visible to Administrator)
-- support for all operations initiated through UI and executed by planned activities (cron)
-- generator-like method to simply add progress reporting to any iteration (support for sub-iterations)
-
-
 .. class:: no-web
 
     .. image:: https://raw.githubusercontent.com/gmarczynski/odoo-web-progress/11.0/web_progress/static/description/progress_bar_loading_systray.gif
         :alt: Progress Systray Menu
         :width: 50%
         :align: right
+
+- progress reporting for all standard Odoo import and export operations
+- system tray menu that lists ongoing operations initiated by the logged user (all operations visible to Administrator)
+- support for all operations initiated through UI and executed by planned activities (cron)
+- generator-like method to simply add progress reporting to any iteration (support for sub-iterations)
+
 
 For developers
 ---------------
