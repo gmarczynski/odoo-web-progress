@@ -55,3 +55,9 @@
     width: 350px;
     overflow: auto;
 }
+
+.o_progress_navbar_dropdown {
+    overflow: auto;
+    max-height: 90vh;
+    padding-right: 5px;
+}
