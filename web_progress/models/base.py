@@ -162,4 +162,4 @@ class Base(models.AbstractModel):
             for sub in splittor(self):
                 ret += super(Base, sub)._export_rows(fields, _is_toplevel_call=_is_toplevel_call)
             return ret
-        return super(Base, self)._export_rows(fields, *args, _is_toplevel_call=_is_toplevel_call)
+        return super(Base, self)._export_rows(fields, _is_toplevel_call=_is_toplevel_call)

@@ -4,6 +4,7 @@ from odoo.exceptions import UserError
 from threading import RLock
 from datetime import datetime, timedelta
 from collections import defaultdict
+from contextlib import contextmanager
 import odoo
 import json
 import logging
@@ -21,6 +22,32 @@ progress_data = defaultdict(dict)
 # user name
 user_name = {}
 
+
+@contextmanager
+def clear_upon_failure(self):
+    """ Context manager that clears the environments (caches and fields to
+        recompute) upon exception.
+    """
+    tocompute = {
+        field: set(ids)
+        for field, ids in self.all.tocompute.items()
+    }
+    towrite = {
+        model: {
+            record_id: dict(values)
+            for record_id, values in id_values.items()
+        }
+        for model, id_values in self.all.towrite.items()
+    }
+    try:
+        yield
+    except Exception:
+        self.clear()
+        self.all.tocompute.update(tocompute)
+        for model, id_values in towrite.items():
+            for record_id, values in id_values.items():
+                self.all.towrite[model][record_id].update(values)
+        raise
 
 def json_dump(v):
     return json.dumps(v, separators=(',', ':'))
@@ -246,30 +273,29 @@ class WebProgress(models.TransientModel):
             return
         code = vals_list[0].get('code')
         try:
-            with self.env.clear_upon_failure():
-                with api.Environment.manage():
-                    with registry(self.env.cr.dbname).cursor() as new_cr:
-                        # Create a new environment with a new cursor
-                        new_env = api.Environment(new_cr, self.env.uid, self.env.context)
-                        # clear whatever is to be computed or written
-                        # it will be restored later on
-                        new_env.clear()
-                        # with_env replaces the original env for this method
-                        progress_obj = self.with_env(new_env)
-                        progress_obj.create(vals_list)
-                        # notify bus
-                        if notify:
-                            progress_notif = progress_obj.get_progress(code)
-                            progress_obj._bus_send('web_progress', progress_notif)
-                        # isolated transaction to commit
-                        new_env.cr.commit()
-                        # restore main transaction's data
-                        raise RestoreEnvToComputeToWrite
+            with clear_upon_failure(self.env):
+                with registry(self.env.cr.dbname).cursor() as new_cr:
+                    # Create a new environment with a new cursor
+                    new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                    # clear whatever is to be computed or written
+                    # it will be restored later on
+                    new_env.clear()
+                    # with_env replaces the original env for this method
+                    progress_obj = self.with_env(new_env)
+                    progress_obj.create(vals_list)
+                    # notify bus
+                    if notify:
+                        progress_notif = progress_obj.get_progress(code)
+                        progress_obj._bus_send('web_progress', progress_notif)
+                    # isolated transaction to commit
+                    new_env.cr.commit()
+                    # restore main transaction's data
+                    raise RestoreEnvToComputeToWrite
         except RestoreEnvToComputeToWrite:
             pass
 
     @api.model
-    def _bus_send(self, channel, message):
+    def _sendone(self, channel, message):
         """
         Copied send message from bus.bus.
         The garbage collection that occurs in the standard Odoo code may cause deadlocks.
@@ -307,18 +333,17 @@ class WebProgress(models.TransientModel):
         :return: (recordset) res.users of the user that cancelled the operation
         """
         code = params.get('code')
-        with api.Environment.manage():
-            with registry(self.env.cr.dbname).cursor() as new_cr:
-                # use new cursor to check for cancel
-                query = """
-                SELECT create_uid FROM web_progress
-                WHERE code = %s AND state = 'cancel' AND recur_depth = 0
-                    AND (create_uid = %s OR create_uid = %s)
-                """
-                new_cr.execute(query, (code, self.env.user.id, SUPERUSER_ID))
-                result = new_cr.fetchall()
-                if result:
-                    return self.create_uid.browse(result[0])
+        with registry(self.env.cr.dbname).cursor() as new_cr:
+            # use new cursor to check for cancel
+            query = """
+            SELECT create_uid FROM web_progress
+            WHERE code = %s AND state = 'cancel' AND recur_depth = 0
+                AND (create_uid = %s OR create_uid = %s)
+            """
+            new_cr.execute(query, (code, self.env.user.id, SUPERUSER_ID))
+            result = new_cr.fetchall()
+            if result:
+                return self.create_uid.browse(result[0])
         return False
 
     def _get_parent_codes(self, params):

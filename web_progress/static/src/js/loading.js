@@ -7,12 +7,12 @@ odoo.define('web.progress.loading', function (require) {
  */
 
 var core = require('web.core');
-var Loading = require('web.Loading');
+var ProgressMenu = require('web_progress.ProgressMenu').ProgressMenu;
 
 var _t = core._t;
-var progress_timeout = 5000;
+var progress_timeout = require('web.progress.bar').progress_timeout;
 
-Loading.include({
+ProgressMenu.include({
 
     init: function(parent) {
         this._super(parent);
@@ -70,6 +70,7 @@ Loading.include({
         var self = this;
         this.progress_timers[progress_code] = setTimeout(function () {
             self.notifyProgressCode(progress_code);
+            self.removeProgress(progress_code);
         }, progress_timeout);
     },
     removeProgress: function(progress_code) {
@@ -81,8 +82,7 @@ Loading.include({
 });
 
 return {
-    Loading: Loading,
-    progress_timeout: progress_timeout,
+    ProgressMenu: ProgressMenu,
 };
 });
 

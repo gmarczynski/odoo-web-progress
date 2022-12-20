@@ -15,6 +15,7 @@ var ajax_jsonpRpc = ajax.jsonpRpc;
 var ajax_rpc = ajax.rpc;
 var ajax_get_file = ajax.get_file;
 var progress_codes = {};
+var rpcIdToProgressCodes = {};
 
 function pseudoUuid(a){
     return a?(a^Math.random()*16>>a/4).toString(16):([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,pseudoUuid)
@@ -22,30 +23,46 @@ function pseudoUuid(a){
 
 var RelayRequest = core.Class.extend(mixins.EventDispatcherMixin, {
     init: function (url, fct_name, params, progress_code) {
-        mixins.EventDispatcherMixin.init.call(this);
-        core.bus.on('rpc_request', this, function () {
+        const handle = function (rpcId = -1) {
             if (validateCall(url, fct_name, params)) {
+                if (rpcId >= 0) {
+                    rpcIdToProgressCodes[rpcId] = progress_code;
+                }
                 core.bus.trigger('rpc_progress_request', progress_code);
             }
             this.destroy();
-        });
-    }
+        }
+        mixins.EventDispatcherMixin.init.call(this);
+        core.bus.on('rpc_request', this, handle);
+        core.bus.on('RPC:REQUEST', this, handle);
+    },
 });
 
 var RelayResult = core.Class.extend(mixins.EventDispatcherMixin, {
     init: function () {
+        var self = this;
         mixins.EventDispatcherMixin.init.call(this);
+        core.bus.on('RPC:RESPONSE', this, function (rpcId) {
+            if (rpcId in rpcIdToProgressCodes) {
+                const progress_code = rpcIdToProgressCodes[rpcId];
+                delete rpcIdToProgressCodes[rpcId];
+                self.handle(progress_code);
+            }
+        });
         core.bus.on('rpc:result', this, function (data, result) {
             var progress_code = -1;
             var context = findContext(data.params);
             if (context) {
                 progress_code = context.progress_code;
-                if (progress_code in progress_codes) {
-                    delete progress_codes[progress_code];
-                    core.bus.trigger('rpc_progress_result', progress_code);
-                }
+                self.handle(progress_code);
             }
         });
+    },
+    handle: function (progress_code) {
+        if (progress_code in progress_codes) {
+            delete progress_codes[progress_code];
+            core.bus.trigger('rpc_progress_result', progress_code);
+        }
     }
 });
 

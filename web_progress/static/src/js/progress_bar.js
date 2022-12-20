@@ -8,13 +8,12 @@ odoo.define('web.progress.bar', function (require) {
 
 var core = require('web.core');
 var Widget = require('web.Widget');
-var progress_loading = require('web.progress.loading');
 var framework = require('web.framework');
 var session = require('web.session');
 
 var _t = core._t;
 var QWeb = core.qweb;
-var progress_timeout = progress_loading.progress_timeout;
+var progress_timeout = 5000;
 var progress_timeout_warn = progress_timeout*10;
 var framework_blockUI = framework.blockUI;
 var framework_unblockUI = framework.unblockUI;
@@ -214,6 +213,7 @@ return {
     blockUI: blockUI,
     unblockUI: unblockUI,
     ProgressBar: ProgressBar,
+    progress_timeout: progress_timeout,
 };
 
 });

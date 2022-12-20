@@ -22,15 +22,22 @@
                 ],
 
     'data': [
-        'views/templates.xml',
         'security/ir.model.access.csv',
     ],
-
-    'qweb': [
-        'static/src/xml/progress_bar.xml',
-        'static/src/xml/web_progress_menu.xml',
+    'assets': {
+        'web.assets_backend': [
+            'web_progress/static/src/js/rpc_service.js',
+            'web_progress/static/src/js/loading.js',
+            'web_progress/static/src/js/progress_bar.js',
+            '/web_progress/static/src/js/ajax.js',
+            '/web_progress/static/src/js/progress_menu.js',
+            '/web_progress/static/src/css/views.css',
         ],
-
+        'web.assets_qweb': [
+            'web_progress/static/src/xml/progress_bar.xml',
+            'web_progress/static/src/xml/web_progress_menu.xml',
+        ],
+    },
     'demo': [
     ],
     'images': ['static/description/progress_bar_loading_compact.gif',
