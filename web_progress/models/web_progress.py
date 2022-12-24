@@ -286,43 +286,13 @@ class WebProgress(models.TransientModel):
                     # notify bus
                     if notify:
                         progress_notif = progress_obj.get_progress(code)
-                        progress_obj._bus_send('web_progress', progress_notif)
+                        new_env['bus.bus']._sendone('web_progress', 'web_progress', progress_notif)
                     # isolated transaction to commit
                     new_env.cr.commit()
                     # restore main transaction's data
                     raise RestoreEnvToComputeToWrite
         except RestoreEnvToComputeToWrite:
             pass
-
-    @api.model
-    def _sendone(self, channel, message):
-        """
-        Copied send message from bus.bus.
-        The garbage collection that occurs in the standard Odoo code may cause deadlocks.
-        Here the garbage collection of 'web.progress' model will execute the garbage collection of 'bus.bus'
-        :param channel: channel name
-        :param message: message to send
-        """
-        notifications = [[channel, message]]
-        channels = set()
-        for channel, message in notifications:
-            channels.add(channel)
-            values = {
-                "channel": json_dump(channel),
-                "message": json_dump(message)
-            }
-            self.env['bus.bus'].sudo().create(values)
-        if channels:
-            # We have to wait until the notifications are commited in database.
-            # When calling `NOTIFY imbus`, some concurrent threads will be
-            # awakened and will fetch the notification in the bus table. If the
-            # transaction is not commited yet, there will be nothing to fetch,
-            # and the longpolling will return no notification.
-            def notify():
-                with odoo.sql_db.db_connect('postgres').cursor() as cr:
-                    cr.execute("notify imbus, %s", (json_dump(list(channels)),))
-
-            self._cr.postcommit.add(notify)
 
     @api.model
     def _check_cancelled(self, params):

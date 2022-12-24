@@ -84,7 +84,7 @@ var ProgressBar = Widget.extend({
         self.$progress_frame.css("visibility", 'visible');
         if (self.$spin_container) {
             // this is main progress bar
-            self.$spin_container.find(".oe_throbber_message").css("display", 'none');
+            self.$spin_container.find(".o_message").css("display", 'none');
         } else {
             // this is a systray progress bar
             self.$progress_message.removeClass('o_progress_message');
@@ -191,18 +191,33 @@ var ProgressBar = Widget.extend({
 
 var progress_bars = [];
 
+function addProgressBarToBlockedUI() {
+    var $el = $('.o_progress_blockui');
+    if ($el.length == 0) {
+        // wait for the state propagation
+        setTimeout(function () {
+            addProgressBarToBlockedUI();
+        }, 100)
+        return;
+    }
+    var progress_bar = new ProgressBar(false, false, $el);
+    progress_bars.push(progress_bar);
+    progress_bar.appendTo($el);
+}
+
+function removeProgressBarFrmBlockedUI(BlockUIcomp) {
+    _.invoke(progress_bars, 'destroy');
+    progress_bars = [];
+    return framework_unblockUI();
+}
 function blockUI() {
     var tmp = framework_blockUI();
-    var $spin_container = $(".oe_blockui_spin_container");
-    var progress_bar = new ProgressBar(false, false, $spin_container);
-    progress_bars.push(progress_bar);
-    progress_bar.appendTo($spin_container);
+    addProgressBarToBlockedUI();
     return tmp;
 }
 
 function unblockUI() {
-    _.invoke(progress_bars, 'destroy');
-    progress_bars = [];
+    removeProgressBarFrmBlockedUI();
     return framework_unblockUI();
 }
 
@@ -214,6 +229,8 @@ return {
     unblockUI: unblockUI,
     ProgressBar: ProgressBar,
     progress_timeout: progress_timeout,
+    addProgressBarToBlockedUI: addProgressBarToBlockedUI,
+    removeProgressBarFrmBlockedUI: removeProgressBarFrmBlockedUI,
 };
 
 });

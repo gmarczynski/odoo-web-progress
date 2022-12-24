@@ -48,12 +48,12 @@ var ProgressMenu = Widget.extend({
      * @private
      */
     _handleNotification: function(notification){
-        if (this.channel && (notification[0] === this.channel)) {
+        if (this.channel && (notification.type === this.channel)) {
             // this._setTimerProgressPreview();
-            var progress = notification[1][0];
+            var progress = notification.payload[0];
             this._processProgressData(progress.code, progress.state, progress.uid);
             if (['ongoing', 'done'].indexOf(progress.state) >= 0) {
-                core.bus.trigger('rpc_progress', notification[1])
+                core.bus.trigger('rpc_progress', notification.payload)
             }
         }
     },
