@@ -10,6 +10,9 @@ var core = require('web.core');
 var Widget = require('web.Widget');
 var framework = require('web.framework');
 var session = require('web.session');
+var DataImport = require('base_import.import').DataImport;
+const genericRelayEvents = require('web.progress.ajax').genericRelayEvents;
+const findContext = require('web.progress.ajax').findContext;
 
 var _t = core._t;
 var QWeb = core.qweb;
@@ -194,15 +197,19 @@ var progress_bars = [];
 var tm = false;
 
 function addProgressBarToBlockedUI() {
+    removeProgressBarFrmBlockedUI();
     var $el = $('.o_progress_blockui');
     if ($el.length == 0) {
         $el = $(".oe_blockui_spin_container");
         if ($el.length == 0) {
-            // wait for the state propagation
-            tm = setTimeout(function () {
-                addProgressBarToBlockedUI();
-            }, 100);
-            return;
+            $el = $(".o_import_progress_dialog");
+            if ($el.length == 0) {
+                // wait for the state propagation
+                tm = setTimeout(function () {
+                    addProgressBarToBlockedUI();
+                }, 100);
+                return;
+            }
         }
     }
     tm = false;
@@ -211,13 +218,12 @@ function addProgressBarToBlockedUI() {
     progress_bar.appendTo($el);
 }
 
-function removeProgressBarFrmBlockedUI(BlockUIcomp) {
+function removeProgressBarFrmBlockedUI() {
     _.invoke(progress_bars, 'destroy');
     progress_bars = [];
     if (tm) {
         clearTimeout(tm);
     }
-    return framework_unblockUI();
 }
 function blockUI() {
     var tmp = framework_blockUI();
@@ -233,6 +239,25 @@ function unblockUI() {
 framework.blockUI = blockUI;
 framework.unblockUI = unblockUI;
 
+const DataImportWebProgress = DataImport.include({
+    _onBatchStart: function () {
+        const tmp = this._super(...arguments);
+        addProgressBarToBlockedUI();
+        return tmp;
+    },
+    _rpc: function (params, options) {
+        const execute_import = options && options.shadow && params.method === 'execute_import';
+        if (execute_import) {
+            genericRelayEvents('/web/', 'call', params);
+            const context = findContext(params);
+            if (progress_bars.length === 1 && context.progress_code) {
+                progress_bars[0].defineProgressCode(context.progress_code);
+            }
+        }
+        return this._super(...arguments);
+    }
+})
+
 return {
     blockUI: blockUI,
     unblockUI: unblockUI,
@@ -240,6 +265,7 @@ return {
     progress_timeout: progress_timeout,
     addProgressBarToBlockedUI: addProgressBarToBlockedUI,
     removeProgressBarFrmBlockedUI: removeProgressBarFrmBlockedUI,
+    DatImportWebProgress: DataImportWebProgress,
 };
 
 });

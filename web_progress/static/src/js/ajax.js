@@ -94,7 +94,7 @@ function genericRelayEvents(url, fct_name, params) {
     if (validateCall(url, fct_name, params)) {
         var progress_code = pseudoUuid();
         var context = findContext(params);
-        if (context) {
+        if (context && !context.progress_code) {
             context['progress_code'] = progress_code;
             progress_codes[progress_code] = new RelayRequest(url, fct_name, params, progress_code);
         }
