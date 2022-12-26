@@ -18,17 +18,11 @@ Author: Grzegorz Marczyński
 
 License: LGPL-3.
 
-Copyright © 2019 Grzegorz Marczyński
+Copyright © 2021 Grzegorz Marczyński
 
 
 Features
 --------
-
-- progress reporting for all standard Odoo import and export operations
-- system tray menu that lists ongoing operations initiated by the logged user (all operations visible to Administrator)
-- support for all operations initiated through UI and executed by planned activities (cron)
-- generator-like method to simply add progress reporting to any iteration (support for sub-iterations)
-
 
 .. class:: no-web
 
@@ -36,6 +30,12 @@ Features
         :alt: Progress Systray Menu
         :width: 50%
         :align: right
+
+- progress reporting for all standard Odoo import and export operations
+- system tray menu that lists ongoing operations initiated by the logged user (all operations visible to Administrator)
+- support for all operations initiated through UI and executed by planned activities (cron)
+- generator-like method to simply add progress reporting to any iteration (support for sub-iterations)
+
 
 For developers
 ---------------
@@ -86,6 +86,13 @@ Progress tracking may be added to sub-operations as well:
 
 Release Notes
 -------------
+
+2.0 - 2021-08-22 - new functionality and fixes:
+
+- add styles (standard, simple, nyan cat)
+- make the progress bar appear directly when the screen becomes blocked
+- keep basic progress functionality even if long polling is disabled or cease to work
+- fix import of o2m fields for Odoo v13.0 and v0.14
 
 1.4 - 2021-03-21 - fixes:
 

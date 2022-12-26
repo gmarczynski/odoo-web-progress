@@ -135,7 +135,7 @@ class Base(models.AbstractModel):
         """
         extracted = super(Base, self)._extract_records(fields_, data, log=log, limit=limit)
         if 'progress_code' in self._context:
-            total = len(data)
+            total = min(limit, len(data) - len(self._context.get('skip_records', [])))
             return self.web_progress_iter(extracted, _("importing to {}").
                                              format(self._description.lower()), total=total, cancellable=True,
                                              log_level="info")
@@ -162,4 +162,4 @@ class Base(models.AbstractModel):
             for sub in splittor(self):
                 ret += super(Base, sub)._export_rows(fields, _is_toplevel_call=_is_toplevel_call)
             return ret
-        return super(Base, self)._export_rows(fields, *args, _is_toplevel_call=_is_toplevel_call)
+        return super(Base, self)._export_rows(fields, _is_toplevel_call=_is_toplevel_call)
