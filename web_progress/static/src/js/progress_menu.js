@@ -114,7 +114,7 @@ var ProgressMenu = Widget.extend({
             this.$el.addClass('o_no_notification');
         }
         if (!this.getSession().is_system) {
-            this.$el.toggleClass('o_hidden', !this.progressCounter);
+            this.$el.toggleClass('hidden', !this.progressCounter);
         }
     },
     /**

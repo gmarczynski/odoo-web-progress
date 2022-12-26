@@ -26,6 +26,12 @@ user_name = {}
 def json_dump(v):
     return json.dumps(v, separators=(',', ':'))
 
+
+class CancelledProgress(models.UserError):
+    # exception used to cancel the execution
+    pass
+
+
 class RestoreEnvToComputeToWrite(Exception):
     """
     Used to restore the towrite and to compute of an old env
@@ -446,7 +452,7 @@ class WebProgress(models.TransientModel):
             if params.get('cancellable', True):
                 user_id = self._check_cancelled(params)
                 if user_id:
-                    raise UserError(_("Operation has been cancelled by") + " " + user_id.sudo().name)
+                    raise CancelledProgress(_("Operation has been cancelled by") + " " + user_id.sudo().name)
             time_left, time_total, time_elapsed = self._get_time_left(params, time_now, first_ts)
             if time_left:
                 self._set_attrib_for_all(params, 'time_left', time_left)
