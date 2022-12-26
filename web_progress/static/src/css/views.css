@@ -2,6 +2,10 @@
  * Style for progress bar
  */
 
+.o_progress_navbar_dropdown_channels {
+    min-width: 450px;
+}
+
 #progress_outline {
     min-width: 100%;
     padding: 20px;
@@ -12,6 +16,8 @@
     min-width: 100%;
     margin-left: 0;
     border-radius: 0;
+    padding: 5px;
+    box-shadow: none;
 }
 
 #progress_frame {
@@ -45,11 +51,25 @@
     margin-top: 3px;
 }
 
+#progress_cancel_confirm {
+    padding: 8px;
+}
+
+#progress_cancel_confirm, #progress_cancel_yes, #progress_cancel_no {
+    border: hidden;
+}
+
 #progress_time_eta {
     display: inline-block;
     vertical-align: middle;
     margin-left: 5px;
     margin-top: 5px;
+}
+
+#progress_time_eta2 {
+    text-align: left;
+    vertical-align: middle;
+    margin-top: 0px;
 }
 
 .o_progress_message, .o_progress_button {
@@ -60,19 +80,20 @@
     display: inherit;
 }
 
-.o_progress_message_systray {
-    border-bottom: 1px solid #aaa;
-    padding-bottom: 10px;
-}
-
 .o_progress_systray {
     margin: 10px;
     width: 300px;
     overflow: auto;
 }
 
+.o_progress_navbar_dropdown {
+    overflow: auto;
+    max-height: 90vh;
+    padding-right: 5px;
+}
+
 #progress_percent {
     visibility: visible;
-    font-size: 20pt;
+    font-size: 16pt;
     font-weight: bold;
 }
