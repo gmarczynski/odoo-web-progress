@@ -59,25 +59,26 @@ Loading.include({
                 }
         })
     },
-    moveToBackground: function() {
+    moveToBackground: function () {
         this.count = 0;
         // TODO: add move to background
     },
-    cancelProgress: function(progress_code) {
+    cancelProgress: function (progress_code) {
         var self = this;
         this._rpc({
-                model: 'web.progress',
-                method: 'cancel_progress',
-                args: [progress_code]
-            }, {'shadow': true}).then(function() {})
+            model: 'web.progress',
+            method: 'cancel_progress',
+            args: [progress_code]
+        }, {'shadow': true}).then(function () {
+        })
     },
-    addProgress: function(progress_code, retries=10) {
+    addProgress: function (progress_code, retries = 10) {
         var self = this;
         this.progress_timers[progress_code] = setTimeout(function () {
             self.notifyProgressCode(progress_code, retries);
-        }, progress_timeout/5);
+        }, progress_timeout / 5);
     },
-    removeProgress: function(progress_code) {
+    removeProgress: function (progress_code) {
         if (progress_code in this.progress_timers) {
             clearTimeout(this.progress_timers[progress_code]);
             delete this.progress_timers[progress_code];
