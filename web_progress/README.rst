@@ -18,17 +18,11 @@ Author: Grzegorz Marczyński
 
 License: LGPL-3.
 
-Copyright © 2020 Grzegorz Marczyński
+Copyright © 2022 Grzegorz Marczyński
 
 
 Features
 --------
-
-- progress reporting for all standard Odoo import and export operations
-- system tray menu that lists ongoing operations initiated by the logged user (all operations visible to Administrator)
-- support for all operations initiated through UI and executed by planned activities (cron)
-- generator-like method to simply add progress reporting to any iteration (support for sub-iterations)
-
 
 .. class:: no-web
 
@@ -36,6 +30,12 @@ Features
         :alt: Progress Systray Menu
         :width: 50%
         :align: right
+
+- progress reporting for all standard Odoo import and export operations
+- system tray menu that lists ongoing operations initiated by the logged user (all operations visible to Administrator)
+- support for all operations initiated through UI and executed by planned activities (cron)
+- generator-like method to simply add progress reporting to any iteration (support for sub-iterations)
+
 
 For developers
 ---------------
@@ -48,7 +48,6 @@ Say, your operation's main method looks as follows:
 
 .. code-block::
 
-    @api.multi
     def action_operation(self):
         for rec in self:
             rec.do_somethig()
@@ -58,7 +57,6 @@ Then a progress-reporting-ready version would be:
 
 .. code-block::
 
-    @api.multi
     def action_operation(self):
         for rec in self.web_progress_iter(self, msg="Message"):
             rec.do_something()
@@ -68,7 +66,6 @@ or a simpler version for recordsets:
 
 .. code-block::
 
-    @api.multi
     def action_operation(self):
         for rec in self.with_progress(msg="Message"):
             rec.do_something()
@@ -77,7 +74,6 @@ Progress tracking may be added to sub-operations as well:
 
 .. code-block::
 
-    @api.multi
     def action_operation(self):
         for rec in self.with_progress(msg="Message"):
             lines = rec.get_lines()
@@ -87,15 +83,19 @@ Progress tracking may be added to sub-operations as well:
 Release Notes
 -------------
 
+2.0 - 2021-08-22 - new functionality and fixes:
+
+- add styles (standard, simple, nyan cat)
+- make the progress bar appear directly when the screen becomes blocked
+- keep basic progress functionality even if long polling is disabled or cease to work
+- fix import of o2m fields for Odoo v13.0 and v0.14
+
 1.4 - 2021-03-21 - fixes:
 
 - fix deadlock on bus.bus garbage collection
 - fix deadlock on access to res.users
 - do not animate but set the progress bar going backwards
 
-1.3 - 2020-10-05 - ported to Odoo 14.0
-
-1.3 - 2019-10-03 - ported to Odoo 13.0
 
 1.3 - 2019-07-15 - new functionality
 
