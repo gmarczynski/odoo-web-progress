@@ -196,7 +196,7 @@ var ProgressBar = Widget.extend({
 var progress_bars = [];
 var tm = false;
 
-function addProgressBarToBlockedUI() {
+function addProgressBarToBlockedUI(progress_code=false) {
     removeProgressBarFrmBlockedUI();
     var $el = $('.o_progress_blockui');
     if ($el.length == 0) {
@@ -206,14 +206,14 @@ function addProgressBarToBlockedUI() {
             if ($el.length == 0) {
                 // wait for the state propagation
                 tm = setTimeout(function () {
-                    addProgressBarToBlockedUI();
+                    addProgressBarToBlockedUI(progress_code);
                 }, 100);
                 return;
             }
         }
     }
     tm = false;
-    var progress_bar = new ProgressBar(false, false, $el);
+    var progress_bar = new ProgressBar(false, progress_code, $el);
     progress_bars.push(progress_bar);
     progress_bar.appendTo($el);
 }

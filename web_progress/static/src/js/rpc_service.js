@@ -1,22 +1,46 @@
 /** @odoo-module **/
 
-import { jsonrpc } from "@web/core/network/rpc_service";
-import { registry } from "@web/core/registry";
-import { BlockUI } from "@web/core/ui/block_ui";
+import {jsonrpc} from "@web/core/network/rpc_service";
+import {registry} from "@web/core/registry";
+import {BlockUI} from "@web/core/ui/block_ui";
+import {download} from "@web/core/network/download";
 import * as legacyEnv from "web.env";
 import * as legacyProgressAjax from "web.progress.ajax";
 
 const {tags} = owl;
 
-
 import * as legacyProgressBar from "web.progress.bar";
 
+
+// -----------------------------------------------------------------------------
+// download adapted to handle progress reporting
+// -----------------------------------------------------------------------------
+
+const org_download = download._download;
+
+function _download(options) {
+    // add progress_code to the context
+    if (options.data) {
+        const context = JSON.parse(options.data.context);
+        var data = {'context': context};
+        legacyProgressAjax.genericRelayEvents('/web/', 'call', data);
+        options.data.context = JSON.stringify(data.context);
+        legacyProgressBar.addProgressBarToBlockedUI(data.context.progress_code);
+    }
+    return org_download(options);
+}
+
+download._download = _download;
+
+// -----------------------------------------------------------------------------
+// BlockUI adapted to handle progress reporting
+// -----------------------------------------------------------------------------
 function registerProgressBarBLockUI() {
     var BlockUIcomp = registry.category("main_components").get("BlockUI");
 
     if (BlockUIcomp && BlockUIcomp.props) {
-        BlockUIcomp.props.bus.on("BLOCK", null, function() {legacyProgressBar.addProgressBarToBlockedUI(BlockUIcomp)});
-        BlockUIcomp.props.bus.on("UNBLOCK", null, function() {legacyProgressBar.removeProgressBarFrmBlockedUI(BlockUIcomp)});
+        BlockUIcomp.props.bus.on("BLOCK", null, function() {legacyProgressBar.addProgressBarToBlockedUI()});
+        BlockUIcomp.props.bus.on("UNBLOCK", null, function() {legacyProgressBar.removeProgressBarFrmBlockedUI()});
     }
 
 BlockUI.template = tags.xml`
@@ -49,7 +73,7 @@ export const rpcServiceProgress = {
         env.bus.on("RPC:RESPONSE", null, function(rId) {
             legacyEnv.bus.trigger('RPC:RESPONSE', rId);
         });
-        // make sure the progress bar is registered
+        // make sure the progress bar is registered in BlockUI
         registerProgressBarBLockUI();
         return function rpc(route, params = {}, settings) {
             var rId = rpcId++;

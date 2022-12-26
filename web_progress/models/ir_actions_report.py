@@ -6,7 +6,7 @@ class IrActionsReport(models.Model):
     _inherit = 'ir.actions.report'
 
     
-    def render_template(self, template, values=None):
+    def _render_template(self, template, values=None):
         """
         Add progress_iter to the context in order to track progress of iterations inside report generation method
         """
@@ -15,16 +15,16 @@ class IrActionsReport(models.Model):
             new_values['docs'] = self.web_progress_iter(values.get('docs'), "Generating HTML")
         else:
             new_values = values
-        return super(IrActionsReport, self).render_template(template, values=new_values)
+        return super(IrActionsReport, self)._render_template(template, values=new_values)
 
 
     
-    def render_qweb_pdf(self, res_ids=None, data=None):
+    def _render_qweb_pdf(self, res_ids=None, data=None):
         """
         Add progress_iter to the context in order to track progress of iterations inside report generation method
         """
         self.web_progress_percent(30, 'Rendering PDF')
-        return super(IrActionsReport, self).render_qweb_pdf(res_ids=res_ids, data=data)
+        return super(IrActionsReport, self)._render_qweb_pdf(res_ids=res_ids, data=data)
 
 
     
