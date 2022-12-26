@@ -25,7 +25,7 @@ var ProgressMenu = Widget.extend({
         core.bus.on('rpc_progress_destroy', this, this._removeProgressBar);
         this.progressCounter = 0;
         this.$progresses_preview = this.$('.o_progress_navbar_dropdown_channels');
-        if (this.getSession().uid !== 1) {
+        if (!this.getSession().is_system) {
             this.$el.toggleClass('hidden', !this.progressCounter);
         }
         bus.on('notification', this, function (notifications) {
@@ -69,7 +69,7 @@ var ProgressMenu = Widget.extend({
         progress_bar.appendTo(this.$progresses_preview);
         this._updateProgressMenu();
         return progress_bar;
-    },    
+    },
     /**
      * Remove progress bar
      * @private
@@ -108,7 +108,7 @@ var ProgressMenu = Widget.extend({
             this.$('.fa-spinner').removeClass('fa-spin');
             this.$el.addClass('o_no_notification');
         }
-        if (session_uid !== 1) {
+        if (!this.getSession().is_system) {
             this.$el.toggleClass('hidden', !this.progressCounter);
         }
     },
@@ -141,8 +141,9 @@ var ProgressMenu = Widget.extend({
      */
     _processProgressData: function(code, state, uid) {
         var session_uid = this.getSession().uid;
+        var session_is_system = this.getSession().is_system;
         var progress_bar = this._findProgressBar(code);
-        if (session_uid !== uid && session_uid !== 1) {
+        if (session_uid !== uid && !session_is_system) {
             return;
         }
         if (!progress_bar && state === 'ongoing') {

@@ -36,12 +36,16 @@ var ProgressBar = Widget.extend({
         this.cancel_html = QWeb.render('WebProgressBarCancel', {});
         this.cancel_confirm_html = QWeb.render('WebProgressBarCancelConfirm', {})
         this.style = localStorage.getItem(this.style_localstorage_key);
+        if (!session.is_system || !this.style) {
+            this.style = 'standard';
+        }
     },
     start: function() {
         this.$progress_outline = this.$();
         this.$progress_frame = this.$("#progress_frame");
         this.$progress_message = this.$("#progress_message");
         this.$progress_time_eta = this.$("#progress_time_eta");
+        this.$progress_time_eta2 = this.$("#progress_time_eta2");
         this.$progress_cancel = this.$("#progress_cancel");
         this.$progress_percent = this.$("#progress_percent");
         this.$progress_bar = this.$("#progress_bar");
@@ -50,14 +54,14 @@ var ProgressBar = Widget.extend({
             this.$progress_outline,
             this.$progress_frame,
             this.$progress_message,
+            this.$progress_time_eta,
+            this.$progress_time_eta2,
             this.$progress_cancel,
             this.$progress_percent,
             this.$progress_bar,
             this.$progress_user,
         ]
-        if (this.style) {
-            this.setStyle(this.style);
-        }
+        this.setStyle(this.style);
         core.bus.on('rpc_progress_set_code', this, this.defineProgressCode);
         core.bus.on('rpc_progress', this, this.showProgress)
     },
@@ -69,6 +73,10 @@ var ProgressBar = Widget.extend({
     setStyle: function(name) {
         if (this.style && this.style !== name) {
             this.removeStyle(this.style);
+            if (this.last_progress_list) {
+                this.style = name;
+                this.showProgress(this.last_progress_list)
+            }
         }
         _.invoke(this.all_elements, 'addClass', name);
         this.style = name;
@@ -86,11 +94,13 @@ var ProgressBar = Widget.extend({
         }
     },
     showProgress: function(progress_list) {
+        this.last_progress_list = progress_list
         var self = this;
         var top_progress = progress_list[0];
         var progress_code = top_progress.code;
         var uid = session.uid;
-        if (this.progress_code !== progress_code || uid !== 1 && uid !== top_progress.uid) {
+        var is_system = session.is_system;
+        if (this.progress_code !== progress_code || !is_system && uid !== top_progress.uid) {
             return;
         }
         if (top_progress.style) {
@@ -115,7 +125,15 @@ var ProgressBar = Widget.extend({
             });
         progress_html += '</div>';
         if (top_progress['time_left']) {
-            this.$progress_time_eta.html(top_progress['time_left'] + "<br/>" + top_progress['time_total'])
+            var eta_msg = '';
+            var eta_msg2 = '';
+            if (this.style !== 'standard') {
+                eta_msg = top_progress['time_left'] + "<br/>" + top_progress['time_total']
+            } else {
+                eta_msg2 = _t("Est. time left: ") + top_progress['time_left'] + " / " + top_progress['time_total']
+            }
+            this.$progress_time_eta.html(eta_msg);
+            this.$progress_time_eta2.html(eta_msg2);
         }
         self.$progress_outline.css("visibility", 'visible');
         if (self.$spin_container) {
@@ -127,7 +145,7 @@ var ProgressBar = Widget.extend({
             self.$progress_message.removeClass('o_progress_message');
             self.$progress_message.addClass('o_progress_message_systray');
             self.$progress_user.css("visibility", 'visible');
-            if (uid === 1) {
+            if (is_system) {
                 self.$progress_user.html(top_progress.user);
             }
         }

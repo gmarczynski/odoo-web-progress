@@ -29,6 +29,7 @@
             <div id="progress_time_eta"/>
             <div id="progress_cancel"/>
             <div id="progress_percent"/>
+            <div id="progress_time_eta2"/>
             <div id="progress_message" class="o_progress_details"/>
         </div>
     </t>
