@@ -12,6 +12,8 @@ var ProgressMenu = require('web_progress.ProgressMenu').ProgressMenu;
 var _t = core._t;
 var progress_timeout = require('web.progress.bar').progress_timeout;
 
+var last_progress_code = false;
+
 ProgressMenu.include({
 
     init: function(parent) {
@@ -77,7 +79,8 @@ ProgressMenu.include({
         this.progress_timers[progress_code] = setTimeout(function () {
             self.notifyProgressCode(progress_code, retries);
             self.removeProgress(progress_code);
-        }, progress_timeout / 5);
+        }, progress_timeout);
+        last_progress_code = progress_code;
     },
     removeProgress: function (progress_code) {
         if (progress_code in this.progress_timers) {
@@ -87,8 +90,13 @@ ProgressMenu.include({
     }
 });
 
+function getProgressCode() {
+    return last_progress_code;
+}
+
 return {
     ProgressMenu: ProgressMenu,
+    getProgressCode: getProgressCode,
 };
 });
 

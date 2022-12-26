@@ -6,11 +6,10 @@ import {BlockUI} from "@web/core/ui/block_ui";
 import {download} from "@web/core/network/download";
 import * as legacyEnv from "web.env";
 import * as legacyProgressAjax from "web.progress.ajax";
+import * as legacyProgressBar from "web.progress.bar";
+import * as legacyProgressMenu from "web.progress.loading";
 
 const {tags} = owl;
-
-import * as legacyProgressBar from "web.progress.bar";
-
 
 // -----------------------------------------------------------------------------
 // download adapted to handle progress reporting
@@ -39,7 +38,9 @@ function registerProgressBarBLockUI() {
     var BlockUIcomp = registry.category("main_components").get("BlockUI");
 
     if (BlockUIcomp && BlockUIcomp.props) {
-        BlockUIcomp.props.bus.on("BLOCK", null, function() {legacyProgressBar.addProgressBarToBlockedUI()});
+        BlockUIcomp.props.bus.on("BLOCK", null, function() {
+            legacyProgressBar.addProgressBarToBlockedUI(legacyProgressMenu.getProgressCode())
+        });
         BlockUIcomp.props.bus.on("UNBLOCK", null, function() {legacyProgressBar.removeProgressBarFrmBlockedUI()});
     }
 
@@ -86,3 +87,8 @@ export const rpcServiceProgress = {
 
 registry.category("services").remove("rpc");
 registry.category("services").add("rpc", rpcServiceProgress);
+
+// register the same disalog for CancelledProgress as there is for UserError
+registry .category("error_dialogs")
+    .add("odoo.addons.web_progress.models.web_progress.CancelledProgress",
+        registry .category("error_dialogs").get("odoo.exceptions.UserError"))

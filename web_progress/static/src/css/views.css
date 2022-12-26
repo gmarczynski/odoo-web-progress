@@ -6,10 +6,16 @@
     min-width: 450px;
 }
 
+.o_blockUI {
+    opacity: 1.0;
+    background: rgba(0, 0, 0, 0.6);
+}
+
 #progress_outline {
     min-width: 100%;
     padding: 20px;
     color: #666666;
+    background: white;
 }
 
 #progress_outline.o_progress_systray {

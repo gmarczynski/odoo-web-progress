@@ -122,13 +122,12 @@ class WebProgress(models.TransientModel):
         External call to get progress for given code
         :param code: web progress code
         """
-        with api.Environment.manage():
-            with registry(self.env.cr.dbname).cursor() as new_cr:
-                # Create a new environment with new cursor database
-                new_env = api.Environment(new_cr, self.env.uid, self.env.context)
-                # with_env replace original env for this method
-                progress_obj = self.with_env(new_env)
-                return progress_obj.get_progress(code)
+        with registry(self.env.cr.dbname).cursor() as new_cr:
+            # Create a new environment with new cursor database
+            new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+            # with_env replace original env for this method
+            progress_obj = self.with_env(new_env)
+            return progress_obj.get_progress(code)
 
     @api.model
     def get_progress(self, code=None, recur_depth=None):
@@ -331,8 +330,8 @@ class WebProgress(models.TransientModel):
             result = new_cr.fetchall()
             if result:
                 user_id = self.create_uid.browse(result[0])
-                    if self.env.user == user_id or self.is_progress_admin(user_id):
-                        return user_id
+                if self.env.user == user_id or self.is_progress_admin(user_id):
+                    return user_id
         return False
 
     def _get_parent_codes(self, params):
