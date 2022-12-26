@@ -24,12 +24,11 @@ var ProgressMenu = Widget.extend({
         core.bus.on('rpc_progress_destroy', this, this._removeProgressBar);
         this.progressCounter = 0;
         this.$progresses_preview = this.$('.o_mail_systray_dropdown_items');
-        if (this.getSession().uid !== 1) {
+        if (!this.getSession().is_system) {
             this.$el.toggleClass('hidden', !this.progressCounter);
         }
         this.call('bus_service', 'onNotification', this, this._onNotification);
         this._updateProgressMenu();
-        this._queryRecentOperations();
         return this._super();
     },
 
@@ -43,6 +42,8 @@ var ProgressMenu = Widget.extend({
         _.each(notifications, function (notification) {
             self._handleNotification(notification);
         });
+        this._updateProgressMenu();
+        this._queryRecentOperations();
     },
     /**
      * On every bus notification schedule update of all progress and pass progress message to progress bar
@@ -112,7 +113,7 @@ var ProgressMenu = Widget.extend({
             this.$('.fa-spinner').removeClass('fa-spin');
             this.$el.addClass('o_no_notification');
         }
-        if (!this.getSession().is_admin) {
+        if (!this.getSession().is_system) {
             this.$el.toggleClass('o_hidden', !this.progressCounter);
         }
     },
@@ -127,12 +128,13 @@ var ProgressMenu = Widget.extend({
             method: 'get_all_progress',
             args: []
         }, {'shadow': true}).then(function (codes_list) {
-            // console.debug(result_list);
             if (codes_list.length > 0) {
                 _.forEach(codes_list, function (item) {
                     if (item.code) {
                         var pb = self._addProgressBar(item.code);
-                        pb._getProgressViaRPC();
+                        if (pb) {
+                            pb._getProgressViaRPC();
+                        }
                     }
                 })
             }
@@ -144,9 +146,9 @@ var ProgressMenu = Widget.extend({
      */
     _processProgressData: function(code, state, uid) {
         var session_uid = this.getSession().uid;
-        var session_is_admin = this.getSession().is_admin;
+        var session_is_system = this.getSession().is_system;
         var progress_bar = this._findProgressBar(code);
-        if (session_uid !== uid && !session_is_admin) {
+        if (session_uid !== uid && !session_is_system) {
             return;
         }
         if (!progress_bar && state === 'ongoing') {

@@ -139,6 +139,18 @@ class WebProgress(models.TransientModel):
         return result
 
     @api.model
+    def is_progress_admin(self, user_id=None):
+        """
+        Check if the current user (or a user given by parameter)
+        has progress admin credentials.
+        :return:
+        """
+        if not user_id:
+            user_id = self.env.user
+        # superuser and users being in group system are progress admins
+        return user_id._is_superuser() or user_id._is_system()
+
+    @api.model
     def get_all_progress(self, recency=_progress_period_secs * 2):
         """
         Get progress information for all ongoing operations
@@ -147,12 +159,12 @@ class WebProgress(models.TransientModel):
         """
         query = """
         SELECT code, array_agg(state) FROM web_progress
-        WHERE create_date > timezone('utc', now()) - INTERVAL '{recency} SECOND' 
+        WHERE create_date > timezone('utc', now()) - INTERVAL '{recency} SECOND'
               AND recur_depth = 0 {user_id}
         GROUP BY code
         """.format(
             recency=recency or 0,
-            user_id=self.env.user.id != SUPERUSER_ID and "AND create_uid = {user_id}"
+            user_id=not self.is_progress_admin() and "AND create_uid = {user_id}"
                 .format(
                 user_id=self.env.user.id,
             ) or '')
@@ -300,7 +312,7 @@ class WebProgress(models.TransientModel):
     @api.model
     def _check_cancelled(self, params):
         """
-        Check if operation was not cancelled by the user.
+        Check if operation was not cancelled by the user or progress admin.
         The check is executed using a fresh cursor, i.e., it looks outside the current transaction scope
         :param code: web progress code
         :return: (recordset) res.users of the user that cancelled the operation
@@ -312,12 +324,13 @@ class WebProgress(models.TransientModel):
                 query = """
                 SELECT create_uid FROM web_progress
                 WHERE code = %s AND state = 'cancel' AND recur_depth = 0
-                    AND (create_uid = %s OR create_uid = %s)
                 """
-                new_cr.execute(query, (code, self.env.user.id, SUPERUSER_ID))
+                new_cr.execute(query, (code, ))
                 result = new_cr.fetchall()
                 if result:
-                    return self.create_uid.browse(result[0])
+                    user_id = self.create_uid.browse(result[0])
+                    if self.env.user == user_id or self.is_progress_admin(user_id):
+                        return user_id
         return False
 
     def _get_parent_codes(self, params):
@@ -433,7 +446,7 @@ class WebProgress(models.TransientModel):
             if params.get('cancellable', True):
                 user_id = self._check_cancelled(params)
                 if user_id:
-                    raise UserError(_("Operation has been cancelled by") + " " + user_id.name)
+                    raise UserError(_("Operation has been cancelled by") + " " + user_id.sudo().name)
             time_left, time_total, time_elapsed = self._get_time_left(params, time_now, first_ts)
             if time_left:
                 self._set_attrib_for_all(params, 'time_left', time_left)
@@ -531,10 +544,3 @@ class WebProgress(models.TransientModel):
             vals_list.append(self._report_progress_prepare_vals(my_progress_data))
             first_line = False
         self._create_progress(vals_list)
-
-    def unlink(self):
-        """
-        Garbage collect bus.bus together with this model's records.
-        """
-        self.env['bus.bus'].gc()
-        return super().unlink()

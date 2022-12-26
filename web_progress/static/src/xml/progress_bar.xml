@@ -16,9 +16,9 @@
             <div id="progress_style">
                 <button class="dropbtn">▼</button>
                 <div class="progress_style">
-                    <a href="#" id="standard">standard</a>
-                    <a href="#" id="simple">simple</a>
-                    <a href="#" id="nyan">nyan cat</a>
+                    <a href="#" id="standard" onclick="return false;">standard</a>
+                    <a href="#" id="simple" onclick="return false;">simple</a>
+                    <a href="#" id="nyan" onclick="return false;">nyan cat</a>
                 </div>
             </div>
             <div id="progress_user" class="o_progress_user" style="visibility:hidden"/>
@@ -29,6 +29,7 @@
             <div id="progress_time_eta"/>
             <div id="progress_cancel"/>
             <div id="progress_percent"/>
+            <div id="progress_time_eta2"/>
             <div id="progress_message" class="o_progress_details"/>
         </div>
     </t>

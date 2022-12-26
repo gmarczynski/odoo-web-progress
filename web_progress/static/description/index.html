@@ -49,7 +49,6 @@
 
         <pre>
 
-    @api.multi
     def action_operation(self):
         for rec in self:
             rec.do_somethig()
@@ -57,7 +56,6 @@
         <p>then a progress-reporting-ready version would be:</p>
         <pre>
 
-    @api.multi
     def action_operation(self):
         for rec in <b>self.web_progress_iter</b>(self, msg="Message"):
             rec.do_something()
@@ -65,7 +63,6 @@
         <p>or a simpler version for recordsets:</p>
         <pre>
 
-    @api.multi
     def action_operation(self):
         for rec in self.<b>with_progress</b>(msg="Message"):
             rec.do_something()
@@ -75,7 +72,6 @@
 
         <pre>
 
-    @api.multi
     def action_operation(self):
         for rec in self.<b>with_progress</b>(msg="Message"):
             lines = rec.get_lines()
@@ -85,14 +81,19 @@
 
 
         <h2>Release Notes</h2>
+        <b>2.0</b> - 2021-08-22 - new functionality and fixes:
+        <ul>
+            <li> add styles (standard, simple, nyan cat)</li>
+            <li> make the progress bar appear directly when the screen becomes blocked</li>
+            <li> keep basic progress functionality even if long polling is disabled or cease to work</li>
+            <li> fix import of o2m fields for Odoo v13.0 and v0.14</li>
+        </ul>
         <b>1.4</b> - 2021-03-21 - fixes:
         <ul>
             <li> fix deadlock on bus.bus garbage collection</li>
             <li> fix deadlock on access to res.users</li>
             <li> do not animate but set the progress bar going backwards</li>
         </ul>
-        <b>1.3</b> - 2020-10-05 - ported to Odoo 14.0
-        <p></p>
         <b>1.3</b> - 2019-10-03 - ported to Odoo 13.0
         <p></p>
         <b>1.3</b> - 2019-07-15 - new functionality
