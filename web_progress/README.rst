@@ -12,13 +12,13 @@ Progress bar for Odoo waiting screen, possibility to cancel an ongoing operation
         :align: center
 
 
-**web_progress** exists for Odoo 11.0, 12.0, 13.0, 14.0 (CE and EE).
+**web_progress** exists for Odoo 11.0, 12.0, 13.0, 14.0, 15.0 (CE and EE).
 
 Author: Grzegorz Marczyński
 
 License: LGPL-3.
 
-Copyright © 2021 Grzegorz Marczyński
+Copyright © 2023 Grzegorz Marczyński
 
 
 Features
