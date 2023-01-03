@@ -21,6 +21,7 @@ Loading.include({
         core.bus.on("rpc_progress_result", this, this.removeProgress);
         core.bus.on("rpc_progress_cancel", this, this.cancelProgress);
         core.bus.on("rpc_progress_background", this, this.moveToBackground);
+        core.bus.on("rpc_progress_refresh", this, this.getProgressViaRPC);
     },
     destroy: function() {
         for (var key in this.progress_timers) {
@@ -30,49 +31,54 @@ Loading.include({
         }
         this._super();
     },
-    notifyProgressCode: function(progress_code) {
+    notifyProgressCode: function (progress_code, retries = 1) {
         core.bus.trigger('rpc_progress_set_code', progress_code);
+        if (retries > 1) {
+            this.addProgress(progress_code, retries - 1)
+        }
     },
-    getProgressViaRPC: function(progress_code) {
+    getProgressViaRPC: function (progress_code) {
         var self = this;
+        if (progress_code in this.progress_timers) {
+            clearTimeout(this.progress_timers[progress_code]);
+        }
         this._rpc({
                 model: 'web.progress',
-                method: 'get_progress',
+                method: 'get_progress_rpc',
                 args: [progress_code]
             }, {'shadow': true}).then(function (result_list) {
                 // console.debug(result_list);
                 if (result_list.length > 0) {
                     var result = result_list[0];
                     if (['ongoing', 'done'].indexOf(result.state) >= 0) {
-                        core.bus.trigger('rpc_progress_first', result_list)
+                        core.bus.trigger('rpc_progress', result_list)
                     }
-                    if (progress_code in self.progress_timers) {
-                        self.progress_timers[progress_code] = setTimeout(function () {
-                            self.getProgressViaRPC(progress_code)
-                        }, progress_timeout);
+                    if (result.state === 'done') {
+                        core.bus.trigger('rpc_progress_destroy', progress_code)
                     }
                 }
         })
     },
-    moveToBackground: function() {
+    moveToBackground: function () {
         this.count = 0;
         // TODO: add move to background
     },
-    cancelProgress: function(progress_code) {
+    cancelProgress: function (progress_code) {
         var self = this;
         this._rpc({
-                model: 'web.progress',
-                method: 'cancel_progress',
-                args: [progress_code]
-            }, {'shadow': true}).then(function() {})
+            model: 'web.progress',
+            method: 'cancel_progress',
+            args: [progress_code]
+        }, {'shadow': true}).then(function () {
+        })
     },
-    addProgress: function(progress_code) {
+    addProgress: function (progress_code, retries = 10) {
         var self = this;
         this.progress_timers[progress_code] = setTimeout(function () {
-            self.notifyProgressCode(progress_code);
-        }, progress_timeout);
+            self.notifyProgressCode(progress_code, retries);
+        }, progress_timeout / 5);
     },
-    removeProgress: function(progress_code) {
+    removeProgress: function (progress_code) {
         if (progress_code in this.progress_timers) {
             clearTimeout(this.progress_timers[progress_code]);
             delete this.progress_timers[progress_code];
