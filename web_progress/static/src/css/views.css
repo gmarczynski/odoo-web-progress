@@ -10,6 +10,7 @@
     min-width: 100%;
     padding: 20px;
     color: #666666;
+    display: -webkit-box;
 }
 
 #progress_outline.o_progress_systray {
