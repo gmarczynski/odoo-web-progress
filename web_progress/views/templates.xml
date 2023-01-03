@@ -7,6 +7,7 @@
             <script type="text/javascript" src="/web_progress/static/src/js/ajax.js"/>
             <script type="text/javascript" src="/web_progress/static/src/js/progress_menu.js"/>
             <link rel="stylesheet" href="/web_progress/static/src/css/views.css"/>
+            <link rel="stylesheet" href="/web_progress/static/src/css/views_styles.css"/>
         </xpath>
     </template>
 </odoo>

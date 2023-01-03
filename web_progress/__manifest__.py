@@ -14,7 +14,7 @@
     'category': 'Productivity',
     'website': 'https://github.com/gmarczynski/odoo-web-progress',
 
-    'version': '12.0.1.4',
+    'version': '12.0.2.0',
 
     'depends': ['web',
                 'bus',
