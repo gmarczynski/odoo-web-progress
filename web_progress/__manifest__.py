@@ -14,7 +14,7 @@
     'category': 'Productivity',
     'website': 'https://github.com/gmarczynski/odoo-web-progress',
 
-    'version': '14.0.1.4',
+    'version': '14.0.2.0',
 
     'depends': ['web',
                 'bus',
@@ -32,6 +32,7 @@
             '/web_progress/static/src/js/ajax.js',
             '/web_progress/static/src/js/progress_menu.js',
             '/web_progress/static/src/css/views.css',
+            '/web_progress/static/src/css/views_styles.css',
         ],
         'web.assets_qweb': [
             'web_progress/static/src/xml/progress_bar.xml',

@@ -1,4 +1,4 @@
-from odoo.tests import common
+from odoo.tests import common, tagged
 from odoo import exceptions
 import uuid
 import logging
@@ -7,9 +7,8 @@ from ..models.web_progress import last_report_time
 _logger = logging.getLogger(__name__)
 
 
+@tagged('at_install', '-post_install')
 class WebProgressTest(common.SavepointCase):
-    at_install = True
-    post_install = False
 
     def check_all_progress_data_empty(self):
         """
