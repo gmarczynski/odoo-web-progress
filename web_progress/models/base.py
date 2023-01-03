@@ -9,6 +9,7 @@ class GeneratorWithLenIndexable(object):
     """
     A class that mimics a generator, but also supports length and indexing
     """
+
     def __init__(self, gen, length, data):
         self.gen = gen
         self.length = length
@@ -33,7 +34,6 @@ class Base(models.AbstractModel):
     #
     # Progress reporting
     #
-
 
     def with_progress(self, msg='', total=None, cancellable=True, log_level="info"):
         """
@@ -137,8 +137,8 @@ class Base(models.AbstractModel):
         if 'progress_code' in self._context:
             total = min(limit, len(data) - len(self._context.get('skip_records', [])))
             return self.web_progress_iter(extracted, _("importing to {}").
-                                             format(self._description.lower()), total=total, cancellable=True,
-                                             log_level="info")
+                                          format(self._description.lower()), total=total, cancellable=True,
+                                          log_level="info")
         else:
             return extracted
 
@@ -153,7 +153,7 @@ class Base(models.AbstractModel):
                 from the cache after it's been iterated in full
                 """
                 for idx in self.web_progress_iter(range(0, len(rs), 1000), _("exporting batches of 1000 lines") +
-                                                  " ({})".format(self._description)):
+                                                                           " ({})".format(self._description)):
                     sub = rs[idx:idx + 1000]
                     yield sub
                     rs.invalidate_cache(ids=sub.ids)

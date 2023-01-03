@@ -527,10 +527,3 @@ class WebProgress(models.TransientModel):
             vals_list.append(self._report_progress_prepare_vals(my_progress_data))
             first_line = False
         self._create_progress(vals_list)
-
-    def unlink(self):
-        """
-        Garbage collect bus.bus together with this model's records.
-        """
-        self.env['bus.bus'].gc()
-        return super().unlink()
