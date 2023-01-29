@@ -12,7 +12,7 @@ Progress bar for Odoo waiting screen, possibility to cancel an ongoing operation
         :align: center
 
 
-**web_progress** exists for Odoo 11.0, 12.0, 13.0, 14.0, 15.0 (CE and EE).
+**web_progress** exists for Odoo 11.0, 12.0, 13.0, 14.0, 15.0, 16.0 (CE and EE).
 
 Author: Grzegorz Marczyński
 
@@ -82,6 +82,9 @@ Progress tracking may be added to sub-operations as well:
 
 Release Notes
 -------------
+
+2.0 - 2023-01-29
+- port to Odoo 16.0
 
 2.0 - 2021-08-22 - new functionality and fixes:
 

@@ -9,7 +9,7 @@ import * as legacyProgressAjax from "web.progress.ajax";
 import * as legacyProgressBar from "web.progress.bar";
 import * as legacyProgressMenu from "web.progress.loading";
 
-const {tags} = owl;
+const {xml} = owl;
 
 // -----------------------------------------------------------------------------
 // download adapted to handle progress reporting
@@ -44,7 +44,7 @@ function registerProgressBarBLockUI() {
         BlockUIcomp.props.bus.on("UNBLOCK", null, function() {legacyProgressBar.removeProgressBarFrmBlockedUI()});
     }
 
-BlockUI.template = tags.xml`
+BlockUI.template = xml`
     <div t-att-class="state.blockUI ? 'o_blockUI' : ''">
       <t t-if="state.blockUI">
         <div class="o_spinner">
