@@ -24,32 +24,6 @@ progress_data = defaultdict(dict)
 user_name = {}
 
 
-@contextmanager
-def clear_upon_failure(self):
-    """ Context manager that clears the environments (caches and fields to
-        recompute) upon exception.
-    """
-    tocompute = {
-        field: set(ids)
-        for field, ids in self.all.tocompute.items()
-    }
-    towrite = {
-        model: {
-            record_id: dict(values)
-            for record_id, values in id_values.items()
-        }
-        for model, id_values in self.all.towrite.items()
-    }
-    try:
-        yield
-    except Exception:
-        self.clear()
-        self.all.tocompute.update(tocompute)
-        for model, id_values in towrite.items():
-            for record_id, values in id_values.items():
-                self.all.towrite[model][record_id].update(values)
-        raise
-
 def json_dump(v):
     return json.dumps(v, separators=(',', ':'))
 
@@ -289,24 +263,23 @@ class WebProgress(models.TransientModel):
             return
         code = vals_list[0].get('code')
         try:
-            with clear_upon_failure(self.env):
-                with registry(self.env.cr.dbname).cursor() as new_cr:
-                    # Create a new environment with a new cursor
-                    new_env = api.Environment(new_cr, self.env.uid, self.env.context)
-                    # clear whatever is to be computed or written
-                    # it will be restored later on
-                    new_env.clear()
-                    # with_env replaces the original env for this method
-                    progress_obj = self.with_env(new_env)
-                    progress_obj.create(vals_list)
-                    # notify bus
-                    if notify:
-                        progress_notif = progress_obj.get_progress(code)
-                        new_env['bus.bus']._sendone('web_progress', 'web_progress', progress_notif)
-                    # isolated transaction to commit
-                    new_env.cr.commit()
-                    # restore main transaction's data
-                    raise RestoreEnvToComputeToWrite
+            with registry(self.env.cr.dbname).cursor() as new_cr:
+                # Create a new environment with a new cursor
+                new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                # clear whatever is to be computed or written
+                # it will be restored later on
+                new_env.clear()
+                # with_env replaces the original env for this method
+                progress_obj = self.with_env(new_env)
+                progress_obj.create(vals_list)
+                # notify bus
+                if notify:
+                    progress_notif = progress_obj.get_progress(code)
+                    new_env['bus.bus']._sendone('web_progress', 'web_progress', progress_notif)
+                # isolated transaction to commit
+                new_env.cr.commit()
+                # restore main transaction's data
+                raise RestoreEnvToComputeToWrite
         except RestoreEnvToComputeToWrite:
             pass
 

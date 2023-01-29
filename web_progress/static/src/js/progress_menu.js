@@ -18,7 +18,6 @@ var ProgressMenu = Widget.extend({
     init: function(parent) {
         this._super(parent);
         this.call('bus_service', 'addChannel', this.channel);
-        this.call('bus_service', 'startPolling');
     },
     start: function () {
         core.bus.on('rpc_progress_destroy', this, this._removeProgressBar);
@@ -27,7 +26,7 @@ var ProgressMenu = Widget.extend({
         if (!this.getSession().is_system) {
             this.$el.toggleClass('hidden', !this.progressCounter);
         }
-        this.call('bus_service', 'onNotification', this, this._onNotification);
+        this.call('bus_service', 'addEventListener', 'notification', this._onNotification.bind(this));
         this._updateProgressMenu();
         return this._super();
     },
@@ -37,7 +36,8 @@ var ProgressMenu = Widget.extend({
      * Iterate bus notifications
      * @private
      */
-    _onNotification: function (notifications) {
+    _onNotification: function (event) {
+        const notifications = event.detail;
         var self = this;
         _.each(notifications, function (notification) {
             self._handleNotification(notification);
@@ -113,8 +113,9 @@ var ProgressMenu = Widget.extend({
             this.$('.fa-spinner').removeClass('fa-spin');
             this.$el.addClass('o_no_notification');
         }
+        this.$('.o_notification_counter').toggleClass('o_hidden', !this.progressCounter);
         if (!this.getSession().is_system) {
-            this.$el.toggleClass('hidden', !this.progressCounter);
+            this.$el.toggleClass('o_hidden', !this.progressCounter);
         }
     },
     /**

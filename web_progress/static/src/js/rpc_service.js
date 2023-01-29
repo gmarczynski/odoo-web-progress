@@ -9,7 +9,7 @@ import * as legacyProgressAjax from "web.progress.ajax";
 import * as legacyProgressBar from "web.progress.bar";
 import * as legacyProgressMenu from "web.progress.loading";
 
-const {tags} = owl;
+const {xml} = owl;
 
 // -----------------------------------------------------------------------------
 // download adapted to handle progress reporting
@@ -44,20 +44,20 @@ function registerProgressBarBLockUI() {
         BlockUIcomp.props.bus.on("UNBLOCK", null, function() {legacyProgressBar.removeProgressBarFrmBlockedUI()});
     }
 
-BlockUI.template = tags.xml`
-    <div t-att-class="state.blockUI ? 'o_blockUI' : ''">
-      <t t-if="state.blockUI">
-        <div class="o_spinner">
-            <img src="/web/static/img/spin.png" alt="Loading..."/>
+BlockUI.template = xml`
+<div t-att-class="state.blockUI ? 'o_blockUI fixed-top d-flex justify-content-center align-items-center flex-column vh-100 bg-black-50' : ''">
+  <t t-if="state.blockUI">
+    <div class="o_spinner mb-4">
+        <img src="/web/static/img/spin.svg" alt="Loading..."/>
+    </div>
+    <div class="o_progress_blockui" style="min-width: 500px;text-align: center">
+        <div class="o_message text-center px-4">
+            <t t-esc="state.line1"/> <br/>
+            <t t-esc="state.line2"/>
         </div>
-        <div class="o_progress_blockui" style="min-width: 500px;text-align: center">
-            <div class="o_message">
-                <t t-raw="state.line1"/> <br/>
-                <t t-raw="state.line2"/>
-            </div>    
-        </div>
-      </t>
-    </div>`;
+    </div>
+  </t>
+</div>`;
 }
 
 // -----------------------------------------------------------------------------
