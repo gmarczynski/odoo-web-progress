@@ -20,13 +20,17 @@ const org_download = download._download;
 function _download(options) {
     // add progress_code to the context
     if (options.data) {
-        const context = JSON.parse(options.data.context);
-        var data = {'context': context};
+        const data = JSON.parse(options.data.data);
         legacyProgressAjax.genericRelayEvents('/web/', 'call', data);
-        options.data.context = JSON.stringify(data.context);
+        options.data = {'data': JSON.stringify(data)};
+        // block UI, because for unknown reason the UI is not blocked
+        legacyProgressBar.blockUI()
         legacyProgressBar.addProgressBarToBlockedUI(data.context.progress_code);
     }
-    return org_download(options);
+    return org_download(options).finally(() => {
+        // in any case unblock UI
+        legacyProgressBar.unblockUI()
+    })
 }
 
 download._download = _download;
