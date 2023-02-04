@@ -24,12 +24,12 @@ function _download(options) {
         legacyProgressAjax.genericRelayEvents('/web/', 'call', data);
         options.data = {'data': JSON.stringify(data)};
         // block UI, because for unknown reason the UI is not blocked
-        legacyProgressBar.blockUI()
+        legacyProgressBar.blockUI();
         legacyProgressBar.addProgressBarToBlockedUI(data.context.progress_code);
     }
     return org_download(options).finally(() => {
         // in any case unblock UI
-        legacyProgressBar.unblockUI()
+        legacyProgressBar.unblockUI();
     })
 }
 

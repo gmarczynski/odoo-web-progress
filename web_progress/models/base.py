@@ -156,7 +156,7 @@ class Base(models.AbstractModel):
                                                                            " ({})".format(self._description)):
                     sub = rs[idx:idx + 1000]
                     yield sub
-                    rs.invalidate_cache(ids=sub.ids)
+                    sub.invalidate_recordset()
 
             ret = []
             for sub in splittor(self):
