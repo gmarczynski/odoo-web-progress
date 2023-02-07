@@ -19,14 +19,14 @@ const org_download = download._download;
 
 function _download(options) {
     // add progress_code to the context
-    if (options.data) {
+    if (options.data && options.data.data) {
         const data = JSON.parse(options.data.data);
         legacyProgressAjax.genericRelayEvents('/web/', 'call', data);
         options.data = {'data': JSON.stringify(data)};
-        // block UI, because for unknown reason the UI is not blocked
-        legacyProgressBar.blockUI();
         legacyProgressBar.addProgressBarToBlockedUI(data.context.progress_code);
     }
+    // block UI, because for unknown reason the UI is not blocked
+    legacyProgressBar.blockUI();
     return org_download(options).finally(() => {
         // in any case unblock UI
         legacyProgressBar.unblockUI();
