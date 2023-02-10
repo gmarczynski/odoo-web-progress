@@ -19,18 +19,29 @@ const org_download = download._download;
 
 function _download(options) {
     // add progress_code to the context
-    if (options.data && options.data.data) {
-        const data = JSON.parse(options.data.data);
-        legacyProgressAjax.genericRelayEvents('/web/', 'call', data);
-        options.data = {'data': JSON.stringify(data)};
-        legacyProgressBar.addProgressBarToBlockedUI(data.context.progress_code);
+    if (options.data) {
+        var data = false;
+        if (options.data.context) {
+            // reports
+            data = {'context': JSON.parse(options.data.context)};
+            legacyProgressAjax.genericRelayEvents('/web/', 'call', data);
+            options.data.context = JSON.stringify(data.context);
+        } else if (options.data.data) {
+            // export
+            data = JSON.parse(options.data.data);
+            legacyProgressAjax.genericRelayEvents('/web/', 'call', data);
+            options.data.data = JSON.stringify(data);
+        }
+        if (data.context) {
+            // block UI, because for unknown reason the UI is not blocked
+            legacyProgressBar.blockUI();
+            legacyProgressBar.addProgressBarToBlockedUI(data.context.progress_code);
+        }
+        return org_download(options).finally(() => {
+            // in any case unblock UI
+            legacyProgressBar.unblockUI();
+        })
     }
-    // block UI, because for unknown reason the UI is not blocked
-    legacyProgressBar.blockUI();
-    return org_download(options).finally(() => {
-        // in any case unblock UI
-        legacyProgressBar.unblockUI();
-    })
 }
 
 download._download = _download;
