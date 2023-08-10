@@ -158,7 +158,7 @@ class WebProgress(models.TransientModel):
         """
         query = """
         SELECT code, array_agg(state) FROM web_progress
-        WHERE create_date > timezone('utc', now()) - INTERVAL '{recency} SECOND'
+        WHERE create_date > timezone('utc', now()) - INTERVAL '%s SECOND'
               AND recur_depth = 0 {user_id}
         GROUP BY code
         """.format(
@@ -168,7 +168,7 @@ class WebProgress(models.TransientModel):
                 user_id=self.env.user.id,
             ) or '')
         # superuser has right to see (and cancel) progress of everybody
-        self.env.cr.execute(query)
+        self.env.cr.execute(query, (recency, ))
         result = self.env.cr.fetchall()
         ret = [{
             'code': r[0],
