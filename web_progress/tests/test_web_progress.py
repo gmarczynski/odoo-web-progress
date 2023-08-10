@@ -1,7 +1,7 @@
 from odoo.tests import common
 from odoo import exceptions, api, registry
 from odoo.tools import mute_logger
-from psycopg2.errors import SyntaxError
+from psycopg2 import ProgrammingError
 import uuid
 import logging
 from ..models.web_progress import last_report_time
@@ -142,7 +142,7 @@ class WebProgressTestAllProgress(common.SavepointCase):
                 self.assertEqual(res, [{'code': progress_code}])
                 res = progress_obj.get_all_progress(0)
                 self.assertEqual(res, [])
-                with self.assertRaises(SyntaxError) as e:
+                with self.assertRaises(ProgrammingError) as e:
                     progress_obj.get_all_progress("0 SECOND' GROUP BY code; "
                                                   "SELECT code, array_agg(state) FROM web_progress "
                                                   "WHERE create_date > timezone('utc', now()) - INTERVAL '10")
