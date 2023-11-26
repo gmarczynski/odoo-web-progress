@@ -119,9 +119,8 @@ class WebProgressTest(common.TransactionCase):
         self.partner_ids.web_progress_percent(100, "End")
 
 
+@tagged('at_install', '-post_install')
 class WebProgressTestAllProgress(common.TransactionCase):
-    at_install = True
-    post_install = False
 
     @mute_logger('odoo.sql_db')
     def test_get_all_progress(self):

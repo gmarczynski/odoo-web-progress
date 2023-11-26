@@ -19,7 +19,7 @@ const org_download = download._download;
 
 function _download(options) {
     // add progress_code to the context
-    if (options.data) {
+    if (options.data && options.data.context) {
         const context = JSON.parse(options.data.context);
         var data = {'context': context};
         legacyProgressAjax.genericRelayEvents('/web/', 'call', data);
