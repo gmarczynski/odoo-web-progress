@@ -103,7 +103,7 @@ var ProgressMenu = Widget.extend({
      * @private
      */
     _updateProgressMenu: function() {
-        var session_uid = this.getSession().uid;
+        // var session_uid = this.getSession().uid;
         this.progressCounter = Object.keys(this.progress_bars).length;
         this.$('.o_notification_counter').text(this.progressCounter);
         if (this.progressCounter > 0) {
