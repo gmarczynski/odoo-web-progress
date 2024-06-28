@@ -111,7 +111,7 @@ function get_file(options) {
     var complete = options.complete;
     if (options.data && options.data.data) {
         var data = JSON.parse(options.data.data);
-        var context = data.context;
+        var context = options.data.context && JSON.parse(options.data.context);
         if (!context && Array.isArray(data)) {
             data.push({});
             context = data[data.length - 1];
