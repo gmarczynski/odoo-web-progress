@@ -40,6 +40,56 @@
 }
 
 /**
+ * Style for star wars progress bar
+ */
+
+#progress_outline.starwars {
+    background: linear-gradient(to bottom, #000000 0%, #1a1a2e 50%, #000000 100%);
+    color: #ffff00;
+    border: 2px solid #ffff00;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 10px #ffff00;
+}
+
+#progress_frame.starwars {
+    border: 1px solid #333;
+    border-radius: 0;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    background: #000;
+}
+
+#progress_bar.starwars {
+    width: 1%;
+    height: 8px;
+    background: linear-gradient(to right, #00ff00 0%, #00cc00 50%, #009900 100%);
+    border-radius: 0;
+    box-shadow: 0 0 15px #00ff00, inset 0 0 5px #ffffff;
+    animation: lightsaber-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes lightsaber-glow {
+    from { box-shadow: 0 0 15px #00ff00, inset 0 0 5px #ffffff; }
+    to { box-shadow: 0 0 25px #00ff00, 0 0 35px #00ff00, inset 0 0 8px #ffffff; }
+}
+
+#progress_percent.starwars {
+    color: #ffff00;
+    font-weight: bold;
+    text-shadow: 0 0 5px #ffff00;
+}
+
+#progress_message.starwars {
+    color: #ffff00;
+    text-shadow: 0 0 5px #ffff00;
+}
+
+#progress_time_eta.starwars, #progress_time_eta2.starwars {
+    color: #00ff00;
+    text-shadow: 0 0 3px #00ff00;
+}
+
+/**
  * Style for simple progress bar
  */
 

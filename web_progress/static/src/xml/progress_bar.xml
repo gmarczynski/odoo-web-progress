@@ -19,6 +19,7 @@
                     <a href="#" id="standard" onclick="return false;">standard</a>
                     <a href="#" id="simple" onclick="return false;">simple</a>
                     <a href="#" id="nyan" onclick="return false;">nyan cat</a>
+                    <a href="#" id="starwars" onclick="return false;">star wars</a>
                 </div>
             </div>
             <div id="progress_user" class="o_progress_user" style="visibility:hidden"/>
