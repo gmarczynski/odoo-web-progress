@@ -14,7 +14,7 @@
     'category': 'Productivity',
     'website': 'https://github.com/gmarczynski/odoo-web-progress',
 
-    'version': '16.0.2.1',
+    'version': '17.0.2.1',
 
     'depends': ['web',
                 'bus',
@@ -29,10 +29,10 @@
             'web_progress/static/src/js/rpc_service.js',
             'web_progress/static/src/js/loading.js',
             'web_progress/static/src/js/progress_bar.js',
-            '/web_progress/static/src/js/ajax.js',
-            '/web_progress/static/src/js/progress_menu.js',
-            '/web_progress/static/src/css/views.css',
-            '/web_progress/static/src/css/views_styles.css',
+            'web_progress/static/src/js/ajax.js',
+            'web_progress/static/src/js/progress_menu.js',
+            'web_progress/static/src/css/views.css',
+            'web_progress/static/src/css/views_styles.css',
             'web_progress/static/src/xml/progress_bar.xml',
             'web_progress/static/src/xml/web_progress_menu.xml',
         ],
