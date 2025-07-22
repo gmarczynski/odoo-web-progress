@@ -1,189 +1,199 @@
-// Part of web_progress. See LICENSE file for full copyright and licensing details.
-odoo.define('web_progress.ProgressMenu', function (require) {
-"use strict";
+/** @odoo-module **/
 
-var core = require('web.core');
-var session = require('web.session');
-var SystrayMenu = require('web.SystrayMenu');
-var Widget = require('web.Widget');
-var ProgressBar = require('web.progress.bar').ProgressBar;
+import { Component, useState, onWillStart, onMounted } from "@odoo/owl";
+import { useService, useBus } from "@web/core/utils/hooks";
+import { registry } from "@web/core/registry";
+import { Dropdown } from "@web/core/dropdown/dropdown";
+import { DropdownItem } from "@web/core/dropdown/dropdown_item";
+import { ProgressBar } from "./progress_bar";
 
 /**
  * Progress menu item in the systray part of the navbar
  */
-var ProgressMenu = Widget.extend({
-    template:'web_progress.ProgressMenu',
-    channel: 'web_progress',
-    progress_bars: [],
-    init: function(parent) {
-        this._super(parent);
-        this.call('bus_service', 'addChannel', this.channel);
-    },
-    start: function () {
-        core.bus.on('rpc_progress_destroy', this, this._removeProgressBar);
-        this.progressCounter = 0;
-        this.$progresses_preview = this.$('.o_mail_systray_dropdown_items');
-        if (!this.getSession().is_system) {
-            this.$el.toggleClass('hidden', !this.progressCounter);
-        }
-        this.call('bus_service', 'addEventListener', 'notification', this._onNotification.bind(this));
-        this._updateProgressMenu();
-        return this._super();
-    },
+export class ProgressMenu extends Component {
+    static template = "web_progress.ProgressMenu";
+    static components = { Dropdown, DropdownItem, ProgressBar };
+    static props = {};
 
-    // Private
+    setup() {
+        this.state = useState({
+            progressCounter: 0,
+            progressBars: {},
+        });
+
+        this.rpc = useService("rpc");
+        this.user = useService("user");
+        this.progressService = useService("progressService");
+        this.busService = this.progressService.busService;
+        this.bus = this.progressService.bus;
+
+        this.channel = 'web_progress';
+
+        // Use useBus instead of manual event listeners
+        useBus(this.bus, 'web_progress_destroy', this._handleDestroyProgressBar);
+        useBus(this.bus, 'web_progress_response', this._handleDestroyProgressBar);
+        useBus(this.bus, 'web_progress_request', this._handleAddProgressBar);
+
+        onWillStart(async () => {
+            this.busService.addChannel(this.channel);
+        });
+
+        onMounted(() => {
+            this.busService.subscribe(this.channel, this._onNotification.bind(this));
+            this._updateProgressMenu();
+            this._queryRecentOperations();
+        });
+    }
+
     /**
      * Iterate bus notifications
      * @private
      */
-    _onNotification: function (event) {
-        const notifications = event.detail;
-        var self = this;
-        _.each(notifications, function (notification) {
-            self._handleNotification(notification);
-        });
+    _onNotification = (notifications) => {
+        this._handleNotification(notifications);
         this._updateProgressMenu();
         this._queryRecentOperations();
-    },
+    }
+
     /**
      * On every bus notification schedule update of all progress and pass progress message to progress bar
      * @private
      */
-    _handleNotification: function(notification){
-        if (this.channel && (notification.type === this.channel)) {
-            // this._setTimerProgressPreview();
-            var progress = notification.payload[0];
-            this._processProgressData(progress.code, progress.state, progress.uid);
-            if (['ongoing', 'done'].indexOf(progress.state) >= 0) {
-                core.bus.trigger('rpc_progress', notification.payload)
-            }
+    _handleNotification(progresses) {
+        const progress = progresses[0];
+        this._processProgressData(progress.code, progress.state, progress.uid);
+        if (['ongoing', 'done'].indexOf(progress.state) >= 0) {
+            this.bus.trigger('web_progress_update', progresses);
         }
-    },
+    }
 
     /**
      * Add progress bar
      * @private
      */
-    _addProgressBar: function(code) {
-        var progress_bar = this._findProgressBar(code);
-        if (progress_bar) {
-            return;
+    _addProgressBar(code) {
+        if (this.state.progressBars[code]) {
+            return this.state.progressBars[code];
         }
-        progress_bar = new ProgressBar(this, code);
-        this.progress_bars[code] = progress_bar;
-        progress_bar.appendTo(this.$progresses_preview);
+
+        // Create a new progress bar state entry
+        this.state.progressBars[code] = {
+            code: code,
+            visible: true,
+        };
+
         this._updateProgressMenu();
-        return progress_bar;
-    },
+        this.bus.trigger('web_progress_set_code', code);
+        return this.state.progressBars[code];
+    }
+
     /**
      * Remove progress bar
      * @private
      */
-    _removeProgressBar: function(code) {
-        var progress_bar = this._findProgressBar(code);
-        if (progress_bar) {
-            progress_bar.destroy();
-            delete this.progress_bars[code];
+    _handleDestroyProgressBar = (event) => {
+        const code = event.detail;
+        if (this.state.progressBars[code]) {
+            delete this.state.progressBars[code];
             this._updateProgressMenu();
         }
-    },
+    }
+
+    /**
+     * Add progress bar
+     * @private
+     */
+    _handleAddProgressBar = (event) => {
+        const code = event.detail;
+        if (!this.state.progressBars[code]) {
+            this._addProgressBar(code);
+            this._updateProgressMenu();
+        }
+    }
+
     /**
      * Find progress bar
      * @private
      */
-    _findProgressBar: function(code) {
-        var found_bar = false;
-        if (this.progress_bars.hasOwnProperty(code)) {
-            found_bar = this.progress_bars[code];
-        }
-        return found_bar;
-    },
+    _findProgressBar(code) {
+        return this.state.progressBars[code] || false;
+    }
+
     /**
      * Update counter and style of progress menu
      * @private
      */
-    _updateProgressMenu: function() {
-        var session_uid = this.getSession().uid;
-        this.progressCounter = Object.keys(this.progress_bars).length;
-        this.$('.o_notification_counter').text(this.progressCounter);
-        if (this.progressCounter > 0) {
-            this.$('.fa-spinner').addClass('fa-spin');
-            this.$el.removeClass('o_no_notification');
-        } else {
-            this.$('.fa-spinner').removeClass('fa-spin');
-            this.$el.addClass('o_no_notification');
-        }
-        this.$('.o_notification_counter').toggleClass('o_hidden', !this.progressCounter);
-        if (!this.getSession().is_system) {
-            this.$el.toggleClass('o_hidden', !this.progressCounter);
-        }
-    },
+    _updateProgressMenu() {
+        this.state.progressCounter = Object.keys(this.state.progressBars).length;
+    }
+
     /**
      * Query server for recent operations in progress
      * @private
      */
-    _queryRecentOperations: function() {
-        var self = this;
-        this._rpc({
-            model: 'web.progress',
-            method: 'get_all_progress',
-            args: []
-        }, {'shadow': true}).then(function (codes_list) {
-            if (codes_list.length > 0) {
-                _.forEach(codes_list, function (item) {
+    async _queryRecentOperations() {
+        try {
+            const codesList = await this.rpc('/web/dataset/call_kw/web.progress/get_all_progress', {
+                model: 'web.progress',
+                method: 'get_all_progress',
+                args: [],
+                kwargs: {},
+            });
+
+            if (codesList.length > 0) {
+                codesList.forEach(item => {
                     if (item.code) {
-                        var pb = self._addProgressBar(item.code);
+                        const pb = this._addProgressBar(item.code);
                         if (pb) {
-                            pb._getProgressViaRPC();
+                            this.bus.trigger('web_progress_refresh', item.code);
                         }
                     }
-                })
+                });
             }
-        })
-    },
+        } catch (error) {
+            console.error('Error querying recent operations:', error);
+        }
+    }
+
     /**
      * Process and display progress details
      * @private
      */
-    _processProgressData: function(code, state, uid) {
-        var session_uid = this.getSession().uid;
-        var session_is_system = this.getSession().is_system;
-        var progress_bar = this._findProgressBar(code);
-        if (session_uid !== uid && !session_is_system) {
+    _processProgressData(code, state, uid) {
+        const sessionUid = this.user.userId;
+        const sessionIsSystem = this.user.isSystem;
+        const progressBar = this._findProgressBar(code);
+
+        if (sessionUid !== uid && !sessionIsSystem) {
             return;
         }
-        if (!progress_bar && state === 'ongoing') {
+
+        if (!progressBar && state === 'ongoing') {
             this._addProgressBar(code);
         }
-        if (progress_bar && state === 'done') {
-            this._removeProgressBar(code);
+
+        if (progressBar && state === 'done') {
+            this.bus.trigger('web_progress_destroy', code);
         }
-    },
-    /**
-     * Get particular model view to redirect on click of progress scheduled on that model.
-     * @private
-     * @param {string} model
-     */
-    _getProgressModelViewID: function (model) {
-        return this._rpc({
-            model: model,
-            method: 'get_progress_view_id'
-        });
-    },
-    /**
-     * Check wether progress systray dropdown is open or not
-     * @private
-     * @returns {boolean}
-     */
-    _isOpen: function () {
-        return this.$el.hasClass('open');
-    },
+    }
 
-});
+    get isVisible() {
+        return this.user.isSystem || this.state.progressCounter > 0;
+    }
 
-SystrayMenu.Items.push(ProgressMenu);
+    get hasProgressBars() {
+        return this.state.progressCounter > 0;
+    }
 
-return {
-    ProgressMenu: ProgressMenu,
+    get progressBarCodes() {
+        return Object.keys(this.state.progressBars);
+    }
+}
+
+// Register in systray
+export const systrayItem = {
+    Component: ProgressMenu,
+    isDisplayed: () => true,
 };
-});
+
+registry.category("systray").add("ProgressMenu", systrayItem, { sequence: 100 });

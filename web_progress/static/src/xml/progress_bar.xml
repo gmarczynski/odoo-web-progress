@@ -1,36 +1,119 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<templates id="template" xml:space="preserve">
+<templates xml:space="preserve">
 
-    <t t-name="WebProgressBarCancelConfirm">
-        <div id="cancel_message"  class="o_progress_message">Cancel ongoing operation?</div>
-        <button class="btn btn-secondary btn-sm btn-default" id="progress_cancel_yes">Yes</button>
-        <button class="btn btn-secondary btn-sm btn-default" id="progress_cancel_no">No</button>
+    <t t-name="web_progress.ProgressBar" owl="1">
+        <div t-att-class="'progress_outline modal-content ' + state.style + (props.systray ? ' o_progress_systray' : '')">
+
+            <ProgressBarHeader
+                    systray="props.systray"
+                    user="state.user"
+                    style="state.style"
+                    onStyleClick="onStyleClick"/>
+
+            <ProgressBarBody
+                    style="state.style"
+                    progressBarStyle="progressBarStyle"
+                    progressPercentage="progressPercentage"
+                    timeEta="timeEta"
+                    timeEta2="timeEta2"
+                    message="message"
+                    hasSubProgress="hasSubProgress"
+                    showSubProgress="state.showSubProgress"
+                    onToggleSubProgress="onToggleSubProgress"
+                    cancellable="state.cancellable"
+                    ongoingCancel="state.ongoingCancel"
+                    onCancelClick="onCancelClick"
+                    onCancelConfirmYes="onCancelConfirmYes"
+                    onCancelConfirmNo="onCancelConfirmNo"/>
+
+            <ProgressBarSubList
+                    t-if="hasSubProgress"
+                    subProgressList="state.subProgressList"
+                    style="state.style"
+                    showSubProgress="state.showSubProgress"/>
+
+        </div>
     </t>
 
-    <t t-name="WebProgressBarCancel">
-        <button class="btn btn-sm btn-default fa fa-times o_progress_button" id="progress_cancel_confirm"/>
+    <t t-name="web_progress.ProgressBarHeader" owl="1">
+        <div class="progress_style_selector">
+            <button class="dropbtn">▼</button>
+            <div class="progress_style">
+                <a href="#" t-on-click="props.onStyleClick" id="standard">standard</a>
+                <a href="#" t-on-click="props.onStyleClick" id="simple">simple</a>
+                <a href="#" t-on-click="props.onStyleClick" id="nyan">nyan cat</a>
+            </div>
+        </div>
+        <div t-if="props.systray and props.user" class="o_progress_user progress_user" t-esc="props.user"/>
     </t>
 
-    <t t-name="WebProgressBar">
-        <div id="progress_outline" class="modal-content" style="visibility:hidden">
-            <div id="progress_style">
-                <button class="dropbtn">▼</button>
-                <div class="progress_style">
-                    <a href="#" id="standard" onclick="return false;">standard</a>
-                    <a href="#" id="simple" onclick="return false;">simple</a>
-                    <a href="#" id="nyan" onclick="return false;">nyan cat</a>
+    <t t-name="web_progress.ProgressBarBody" owl="1">
+        <div class="progress_time_elapsed"/>
+
+        <div t-att-class="'progress_frame ' + props.style">
+            <div t-att-class="'progress_bar ' + props.style" t-att-style="props.progressBarStyle"/>
+        </div>
+        <div t-if="props.timeEta" t-att-class="'progress_time_eta ' + props.style" t-out="props.timeEta"/>
+
+        <!-- Embedded controls instead of separate component -->
+        <div t-att-class="'progress_cancel ' + props.style">
+            <t t-if="props.cancellable and !props.ongoingCancel">
+                <button class="btn btn-sm btn-default fa fa-times o_progress_button progress_cancel_confirm"
+                        t-on-click="props.onCancelClick"
+                        title="Cancel operation"/>
+            </t>
+            <t t-if="props.ongoingCancel">
+                <div class="o_progress_message">Cancel ongoing operation?</div>
+                <button class="btn btn-secondary btn-sm progress_cancel_yes" t-on-click="props.onCancelConfirmYes">Yes</button>
+                <button class="btn btn-secondary btn-sm progress_cancel_no" t-on-click="props.onCancelConfirmNo">No</button>
+            </t>
+        </div>
+
+        <div class="progress_info_row">
+            <div t-att-class="'progress_percent ' + props.style" t-esc="props.progressPercentage"/>
+        </div>
+
+        <div t-if="props.timeEta2" t-att-class="'progress_time_eta2 ' + props.style" t-out="props.timeEta2"/>
+
+        <!-- Message and toggle button on the same row -->
+        <div class="progress_message_row">
+            <div t-att-class="'o_progress_details progress_message ' + props.style" t-out="props.message"/>
+            <div t-if="props.hasSubProgress" class="progress_toggle">
+                <button class="btn btn-sm btn-link" t-on-click="props.onToggleSubProgress">
+                    <i t-att-class="'fa ' + (props.showSubProgress ? 'fa-chevron-up' : 'fa-chevron-down')"/>
+                    <span t-esc="props.showSubProgress ? 'Hide Details' : 'Show Details'"/>
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="web_progress.ProgressBarSubList" owl="1">
+        <div t-if="props.showSubProgress" t-att-class="'progress_sub_list ' + props.style">
+            <div class="progress_sub_header">
+                <strong>Progress Details:</strong>
+            </div>
+            <t t-foreach="props.subProgressList" t-as="item" t-key="item_index">
+                <ProgressBarSubItem
+                        item="item"
+                        style="props.style"
+                        level="item_index"/>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="web_progress.ProgressBarSubItem" owl="1">
+        <div t-att-class="'progress_sub_item ' + props.style">
+            <div class="progress_sub_item_header">
+                <span class="progress_sub_level" t-esc="levelIndent"/>
+                <span class="progress_sub_percent" t-esc="progressPercentage"/>
+                <span class="progress_sub_count">(<t t-esc="props.item.done"/>/<t t-esc="props.item.total"/>)</span>
+                <span class="progress_sub_message" t-esc="props.item.msg"/>
+            </div>
+            <div class="progress_sub_bar_container">
+                <div class="progress_sub_bar_frame">
+                    <div class="progress_sub_bar" t-att-style="progressBarStyle"/>
                 </div>
             </div>
-            <div id="progress_user" class="o_progress_user" style="visibility:hidden"/>
-            <div id="progress_time_elapsed"/>
-            <div id="progress_frame">
-                <div id="progress_bar" style="width: 0%"/>
-            </div>
-            <div id="progress_time_eta"/>
-            <div id="progress_cancel"/>
-            <div id="progress_percent"/>
-            <div id="progress_time_eta2"/>
-            <div id="progress_message" class="o_progress_details"/>
         </div>
     </t>
 

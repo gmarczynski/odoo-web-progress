@@ -2,19 +2,19 @@
  * Style for nyan progress bar
  */
 
-#progress_outline.nyan {
+.progress_outline.nyan {
     background: 0 url('/web_progress/static/src/img/nyancat_bckgr.gif');
     color: #aaaaaa;
 }
 
-#progress_frame.nyan {
+.progress_frame.nyan {
     border: 0;
     border-radius: 0;
     margin-top: 10px;
     margin-bottom: 5px;
 }
 
-#progress_bar.nyan {
+.progress_bar.nyan {
     width: 1%;
     height: 35px;
     /* background-image: linear-gradient(to top, violet, indigo, blue, green, yellow, orange, red);*/
@@ -25,7 +25,7 @@
     position: relative;
 }
 
-#progress_bar.nyan:after {
+.progress_bar.nyan:after {
     background-image: url('/web_progress/static/src/img/nyanimated.gif');
     position: absolute;
     margin-top: -5px;
@@ -44,27 +44,27 @@
  */
 
 
-#progress_outline.simple {
+.progress_outline.simple {
     padding: 5px;
     font-size: 10px;
 }
 
-#progress_frame.simple {
+.progress_frame.simple {
     border: 0;
     border-radius: 0;
 }
 
-#progress_bar.simple {
+.progress_bar.simple {
     width: 1%;
     height: 2px;
     border-radius: 0;
 }
 
-#progress_user.simple, #progress_message.simple {
+.progress_user.simple, .progress_message.simple {
     display: none;
 }
 
-#progress_percent.simple {
+.progress_percent.simple {
     font-size: 15px;
 }
 
@@ -78,7 +78,7 @@ Styles menu
     background-color: transparent;
 }
 
-#progress_style {
+.progress_style_selector {
     position: absolute;
     left: 0;
     top: 0;
@@ -105,6 +105,6 @@ Styles menu
     background-color: #ddd;
 }
 
-#progress_style:hover .progress_style {
+.progress_style_selector:hover .progress_style {
     display: block;
 }
