@@ -3,7 +3,7 @@
 
     <t t-name="web_progress.ProgressMenu" owl="1">
         <div t-if="isVisible" t-att-class="'o_mail_systray_item ' + (hasProgressBars ? '' : ' o_no_notification')">
-            <Dropdown>
+            <Dropdown onStateChanged="onDropdownOpened">
                 <t t-set-slot="toggler">
                     <button class="btn dropdown-toggle o-no-caret o-dropdown--narrow"
                             type="button"

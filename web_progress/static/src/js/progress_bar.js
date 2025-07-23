@@ -74,7 +74,7 @@ export class ProgressBar extends Component {
 
     defineProgressCode = (event) => {
         const progressCode = event.detail;
-        if (!this.progressCode) {
+        if (!this.state.user) {
             this.progressCode = progressCode;
             this._setTimeout();
             this._getProgressViaRPC();
@@ -214,18 +214,43 @@ export class ProgressBar extends Component {
         this.progressTimer = setTimeout(() => {
             this.bus.trigger('web_progress_destroy', this.progressCode);
         }, progressTimeoutWarn);
-        this.progressTimer = false;
     }
 
     async _getProgressViaRPC() {
         if (!this.progressCode) {
             return;
         }
-        this.bus.trigger('web_progress_refresh', this.progressCode);
+
+        // Clear existing timer if any
+        if (this.progressTimer) {
+            clearTimeout(this.progressTimer);
+            this.progressTimer = false;
+        }
+
+        try {
+            const resultList = await this.orm.call(
+                'web.progress',
+                'get_progress_rpc',
+                [this.progressCode],
+                {}
+            );
+
+            if (resultList.length > 0) {
+                const result = resultList[0];
+                if (['ongoing', 'done'].indexOf(result.state) >= 0) {
+                    this.bus.trigger('web_progress_update', resultList);
+                }
+                if (result.state === 'done') {
+                    this.bus.trigger('web_progress_destroy', this.progressCode);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching progress:', error);
+        }
     }
 
-    _confirmCancelYes() {
-        this.rpc("/web/progress/cancel", {
+    async _confirmCancelYes() {
+        await this.rpc("/web/progress/cancel", {
             progress_code: this.progressCode,
         });
     }

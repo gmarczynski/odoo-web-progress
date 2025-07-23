@@ -39,7 +39,7 @@ const progressService = {
 registry.category("services").add("progressService", progressService);
 
 // -----------------------------------------------------------------------------
-// RPC service with progres code
+// RPC service with progress code
 // -----------------------------------------------------------------------------
 
 function pseudoUuid(a) {
@@ -86,7 +86,7 @@ export const rpcService = {
 // replace RPC services
 registry.category("services").add("rpc", rpcService, { force: true });
 
-// register the same disalog for CancelledProgress as there is for UserError
-registry .category("error_dialogs")
+// register the same dialog for CancelledProgress as there is for UserError
+registry.category("error_dialogs")
     .add("odoo.addons.web_progress.models.web_progress.CancelledProgress",
-        registry .category("error_dialogs").get("odoo.exceptions.UserError"))
+        registry.category("error_dialogs").get("odoo.exceptions.UserError"));

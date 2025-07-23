@@ -22,6 +22,7 @@ export class ProgressMenu extends Component {
         });
 
         this.rpc = useService("rpc");
+        this.orm = useService("orm");
         this.user = useService("user");
         this.progressService = useService("progressService");
         this.busService = this.progressService.busService;
@@ -46,13 +47,19 @@ export class ProgressMenu extends Component {
     }
 
     /**
+     * Called when dropdown is opened
+     * @private
+     */
+    onDropdownOpened = () => {
+        this._queryRecentOperations();
+    }
+    /**
      * Iterate bus notifications
      * @private
      */
     _onNotification = (notifications) => {
         this._handleNotification(notifications);
         this._updateProgressMenu();
-        this._queryRecentOperations();
     }
 
     /**
@@ -133,12 +140,12 @@ export class ProgressMenu extends Component {
      */
     async _queryRecentOperations() {
         try {
-            const codesList = await this.rpc('/web/dataset/call_kw/web.progress/get_all_progress', {
-                model: 'web.progress',
-                method: 'get_all_progress',
-                args: [],
-                kwargs: {},
-            });
+            const codesList = await this.orm.call(
+                'web.progress',
+                'get_all_progress',
+                [],
+                {}
+            );
 
             if (codesList.length > 0) {
                 codesList.forEach(item => {
