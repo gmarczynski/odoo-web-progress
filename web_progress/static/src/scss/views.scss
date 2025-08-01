@@ -252,3 +252,10 @@
   flex-shrink: 0;
   font-size: 12px;
 }
+
+/* UI blocking progress bar styles */
+.o_web_progress_blockui_progress {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+}

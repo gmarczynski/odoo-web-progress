@@ -81,7 +81,6 @@
             <div t-if="props.hasSubProgress" class="progress_toggle">
                 <button class="btn btn-sm btn-link" t-on-click="props.onToggleSubProgress">
                     <i t-att-class="'fa ' + (props.showSubProgress ? 'fa-chevron-up' : 'fa-chevron-down')"/>
-                    <span t-esc="props.showSubProgress ? 'Hide Details' : 'Show Details'"/>
                 </button>
             </div>
         </div>
@@ -89,9 +88,6 @@
 
     <t t-name="web_progress.ProgressBarSubList" owl="1">
         <div t-if="props.showSubProgress" t-att-class="'progress_sub_list ' + props.style">
-            <div class="progress_sub_header">
-                <strong>Progress Details:</strong>
-            </div>
             <t t-foreach="props.subProgressList" t-as="item" t-key="item_index">
                 <ProgressBarSubItem
                         item="item"

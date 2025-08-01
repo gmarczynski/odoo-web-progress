@@ -276,7 +276,7 @@ export class ProgressBar extends Component {
     }
 
     get hasSubProgress() {
-        return this.state.subProgressList.length > 1;
+        return this.state.subProgressList.length >= 1;
     }
 }
 

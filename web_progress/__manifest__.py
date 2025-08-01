@@ -32,12 +32,14 @@
     ],
     'assets': {
         'web.assets_backend': [
+
+            # Templates
+            'web_progress/static/src/xml/progress_bar.xml',
+            'web_progress/static/src/xml/web_progress_menu.xml',
+
             # Styles
             'web_progress/static/src/scss/views.scss',
             'web_progress/static/src/scss/views_styles.scss',
-
-            # Core services
-            'web_progress/static/src/js/progress_service.js',
 
             # Sub-components (loaded first)
             'web_progress/static/src/js/progress_bar_header.js',
@@ -45,13 +47,15 @@
             'web_progress/static/src/js/progress_bar_sub_item.js',
             'web_progress/static/src/js/progress_bar_sub_list.js',
 
-            # Main components (loaded after sub-components)
+            # Main components (loaded before services)
             'web_progress/static/src/js/progress_bar.js',
             'web_progress/static/src/js/progress_menu.js',
 
-            # Templates
-            'web_progress/static/src/xml/progress_bar.xml',
-            'web_progress/static/src/xml/web_progress_menu.xml',
+            # Patches (loaded before services)
+            'web_progress/static/src/js/block_ui_patch.js',
+
+            # Core services (loaded last to ensure components are registered)
+            'web_progress/static/src/js/progress_service.js',
         ],
     },
     'demo': [
