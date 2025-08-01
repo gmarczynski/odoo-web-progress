@@ -21,4 +21,10 @@ export class ProgressBarSubItem extends Component {
     get levelIndent() {
         return '  '.repeat(this.props.level);
     }
+
+    get itemStyle() {
+        // Add margin-left for indentation based on level
+        const indentPx = this.props.level * 20; // 20px per level
+        return `margin-left: ${indentPx}px;`;
+    }
 }

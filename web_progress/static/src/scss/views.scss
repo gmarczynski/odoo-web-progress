@@ -17,6 +17,7 @@
     color: #666666;
     background: white;
     display: -webkit-box;
+    text-align: center;
 }
 
 .progress_outline.o_progress_systray {
@@ -57,6 +58,7 @@
     display: inline-block;
     vertical-align: middle;
     margin-top: 3px;
+    text-align: center;
 }
 
 .progress_cancel_confirm {
@@ -113,7 +115,7 @@
   display: flex;
   justify-content: center; /* Changed from space-between to center */
   align-items: center;
-  margin-top: -10px; /* Reduced from 5px to 2px to move it closer to the bar */
+  margin-top: -2px; /* Reduced from 5px to -2px to move it closer to the bar */
   position: relative; /* Add relative positioning for absolute positioning of toggle */
 }
 

@@ -39,9 +39,9 @@
         <div class="progress_style_selector">
             <button class="dropbtn">▼</button>
             <div class="progress_style">
-                <a href="#" t-on-click="props.onStyleClick" id="standard">standard</a>
-                <a href="#" t-on-click="props.onStyleClick" id="simple">simple</a>
-                <a href="#" t-on-click="props.onStyleClick" id="nyan">nyan cat</a>
+                <a href="#" t-on-click.stop.prevent="props.onStyleClick" id="standard">standard</a>
+                <a href="#" t-on-click.stop.prevent="props.onStyleClick" id="simple">simple</a>
+                <a href="#" t-on-click.stop.prevent="props.onStyleClick" id="nyan">nyan cat</a>
             </div>
         </div>
         <div t-if="props.systray and props.user" class="o_progress_user progress_user" t-esc="props.user"/>
@@ -98,7 +98,7 @@
     </t>
 
     <t t-name="web_progress.ProgressBarSubItem" owl="1">
-        <div t-att-class="'progress_sub_item ' + props.style">
+        <div t-att-class="'progress_sub_item ' + props.style" t-att-style="itemStyle">
             <div class="progress_sub_item_header">
                 <span class="progress_sub_level" t-esc="levelIndent"/>
                 <span class="progress_sub_percent" t-esc="progressPercentage"/>

@@ -143,6 +143,7 @@ export class ProgressBar extends Component {
         const styleName = event.target.id;
         this.setStyle(styleName);
         event.stopPropagation();
+        event.preventDefault(); // Add this to prevent default link behavior
     }
 
     onCancelClick = () => {

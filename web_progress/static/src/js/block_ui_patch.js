@@ -96,4 +96,3 @@ patch(BlockUI, {
           </t>
         </div>`
 });
-
