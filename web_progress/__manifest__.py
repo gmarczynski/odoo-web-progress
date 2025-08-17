@@ -53,8 +53,10 @@
 
             # Patches (loaded before services)
             'web_progress/static/src/js/block_ui_patch.js',
+            'web_progress/static/src/js/import_block_ui_patch.js',
 
             # Core services (loaded last to ensure components are registered)
+            'web_progress/static/src/js/rpc_service.js',
             'web_progress/static/src/js/progress_service.js',
         ],
     },

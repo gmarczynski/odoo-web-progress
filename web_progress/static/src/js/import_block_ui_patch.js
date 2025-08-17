@@ -1,25 +1,25 @@
 /** @odoo-module **/
 
-import { BlockUI } from "@web/core/ui/block_ui";
+import { ImportBlockUI } from "@base_import/import_block_ui";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
-import { registry } from "@web/core/registry";
-import { xml } from "@odoo/owl";
-import {ProgressBar} from "./progress_bar";
+import {useState, xml} from "@odoo/owl";
+import { ProgressBar } from "./progress_bar";
 
-patch(BlockUI, {
+
+patch(ImportBlockUI, {
     components: {
-        ...(BlockUI.components || {}),
+        ...(ImportBlockUI.components || {}),
         ProgressBar
     },
-})
+});
 
-patch(BlockUI.prototype, {
+patch(ImportBlockUI.prototype, {
     setup() {
         super.setup();
 
         // Add progress-related state
-        Object.assign(this.state, {
+        this.state = useState({
             showProgress: false,
             progressCode: null,
         });
@@ -32,21 +32,8 @@ patch(BlockUI.prototype, {
             this.progressService.bus.addEventListener('web_progress_set_code', this._onProgressSet.bind(this));
             this.progressService.bus.addEventListener('web_progress_destroy', this._onProgressDestroy.bind(this));
         } catch (error) {
-            console.warn('ProgressService not available in BlockUI patch');
+            console.warn('ProgressService not available in ImportBlockUI patch');
         }
-
-    },
-
-    block(ev) {
-        super.block(ev);
-        this.state.showProgress = true;
-        this.state.progressCode = ev.detail?.progressCode || this.state.progressCode || null;
-    },
-
-    unblock() {
-        super.unblock();
-        this.state.showProgress = false;
-        this.state.progressCode = null;
     },
 
     /**
@@ -76,17 +63,20 @@ patch(BlockUI.prototype, {
     }
 });
 
-// Patch the template to include progress bar
-patch(BlockUI, {
+// Patch the template to include progress bar below the import data progress
+patch(ImportBlockUI, {
     template: xml`
-        <div t-att-class="state.blockUI ? 'o_blockUI fixed-top d-flex justify-content-center align-items-center flex-column vh-100' : ''">
-          <t t-if="state.blockUI">
+        <div class="o_blockUI fixed-top d-flex justify-content-center align-items-center flex-column vh-100 bg-black-50">
             <div class="o_spinner mb-4">
                 <img src="/web/static/img/spin.svg" alt="Loading..."/>
+            </div>
+            <div t-if="props.message or props.blockComponent">
+                <div class="o_message text-center px-4" t-esc="props.message" />
+                <t t-if="props.blockComponent" t-component="props.blockComponent.class" t-props="props.blockComponent.props"/>
             </div>
             <div t-if="hasProgress" class="o_web_progress_blockui_progress mt-4">
                <ProgressBar t-props="{ code: state.progressCode, systray: false }"/> 
             </div>
-          </t>
         </div>`
 });
+
