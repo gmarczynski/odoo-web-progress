@@ -39,10 +39,30 @@
     content: "";
 }
 
+.progress_toggle.nyan {
+    color: #aaaaaa;
+}
+
+.progress_sub_list.nyan {
+    color: #aaaaaa;
+}
+
+.progress_sub_count.nyan {
+    color: #aaaaaa;
+}
+
+.progress_sub_measure.nyan {
+    color: #aaaaaa;
+}
+
+.progress_sub_bar.nyan {
+  background: linear-gradient(to right, violet, indigo, blue, green, yellow, orange, red);
+}
+
+
 /**
  * Style for simple progress bar
  */
-
 
 .progress_outline.simple {
     padding: 5px;
@@ -56,16 +76,30 @@
 
 .progress_bar.simple {
     width: 1%;
-    height: 2px;
+    height: 9px;
     border-radius: 0;
 }
 
-.progress_user.simple, .progress_message.simple {
+.progress_user.simple, .progress_message.simple, .progress_toggle.simple {
     display: none;
 }
 
 .progress_percent.simple {
     font-size: 15px;
+}
+
+.progress_sub_list.simple {
+  padding: 5px;
+  font-size: 10px;
+}
+
+.progress_sub_item.simple {
+  padding: 2px;
+  margin-bottom: 4px;
+}
+
+.progress_sub_bar_frame.simple {
+  height: 2px;
 }
 
 /*

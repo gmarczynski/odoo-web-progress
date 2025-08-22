@@ -113,11 +113,11 @@ export class ProgressBar extends Component {
         if (topProgress.time_left) {
             let etaMsg = '';
             let etaMsg2 = '';
-            // if (this.state.style !== 'standard') {
+            if (this.state.style !== 'standard') {
                 etaMsg = `${topProgress.time_left}<br/>${topProgress.time_total}`;
-            // } else {
-            //     etaMsg2 = _t("Est. time left: ") + `${topProgress.time_left} / ${topProgress.time_total}`;
-            // }
+            } else {
+                etaMsg2 = _t("Est. time left: ") + `${topProgress.time_left} / ${topProgress.time_total}`;
+            }
             this.state.timeEta = etaMsg;
             this.state.timeEta2 = etaMsg2;
         }
