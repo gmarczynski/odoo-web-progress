@@ -3,7 +3,6 @@
 import { BlockUI } from "@web/core/ui/block_ui";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
-import { registry } from "@web/core/registry";
 import { xml } from "@odoo/owl";
 import {ProgressBar} from "./progress_bar";
 
@@ -37,12 +36,18 @@ patch(BlockUI.prototype, {
 
     },
 
+    /**
+     * Override to set progress
+     */
     block(ev) {
         super.block(ev);
         this.state.showProgress = true;
         this.state.progressCode = ev.detail?.progressCode || this.state.progressCode || null;
     },
 
+    /**
+     * Override to clear progress code
+     */
     unblock() {
         super.unblock();
         this.state.showProgress = false;

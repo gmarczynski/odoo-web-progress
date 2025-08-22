@@ -55,7 +55,6 @@
         </div>
         <div t-if="props.timeEta" t-att-class="'progress_time_eta ' + props.style" t-out="props.timeEta"/>
 
-        <!-- Embedded controls instead of separate component -->
         <div t-att-class="'progress_cancel ' + props.style">
             <t t-if="props.cancellable and !props.ongoingCancel">
                 <button class="btn btn-sm btn-default fa fa-times o_progress_button progress_cancel_confirm"
