@@ -39,6 +39,14 @@
     content: "";
 }
 
+div.progress_toggle.nyan > button {
+    color: #aaaaaa;
+}
+
+div.progress_cancel.nyan > button, div.progress_minimize_systray.nyan > button {
+    color: #aaaaaa;
+}
+
 .progress_toggle.nyan {
     color: #aaaaaa;
 }

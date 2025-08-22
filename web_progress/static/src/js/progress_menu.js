@@ -29,6 +29,7 @@ export class ProgressMenu extends Component {
         useBus(this.bus, 'web_progress_set_code', this._handleProgressBarChange);
         useBus(this.bus, 'web_progress_request', this._handleProgressBarChange);
         useBus(this.bus, 'web_progress_response', this._handleProgressBarChange);
+        useBus(this.bus, 'web_progress_minimize_to_systray', this._handleMinimizeToSystray);
 
         onMounted(() => {
             // Update the counter when the component is mounted
@@ -51,6 +52,26 @@ export class ProgressMenu extends Component {
      */
     _handleProgressBarChange = () => {
         this._updateProgressCounter();
+    }
+
+    /**
+     * Handle minimize to systray event
+     * @private
+     */
+    _handleMinimizeToSystray = (event) => {
+        // Update counter first
+        this._updateProgressCounter();
+
+        // Open the dropdown after a short delay
+        setTimeout(() => {
+            const globalDropdown =
+                document.querySelector('.o_mail_systray_item button.dropdown-toggle');
+            if (globalDropdown &&
+                globalDropdown.closest('.o_mail_systray_item').querySelector('i.fa-refresh')) {
+                const clickEvent = new Event('click', {bubbles: true});
+                globalDropdown.dispatchEvent(clickEvent);
+            }
+        }, 200);
     }
 
     /**

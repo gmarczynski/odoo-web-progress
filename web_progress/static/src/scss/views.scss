@@ -54,11 +54,15 @@
     background-color: red;
 }
 
-.progress_cancel {
+.progress_cancel, .progress_minimize_systray {
     display: inline-block;
     vertical-align: middle;
     margin-top: 3px;
     text-align: center;
+}
+
+.progress_minimize_systray {
+    margin-top: 0px;
 }
 
 .progress_cancel_confirm {

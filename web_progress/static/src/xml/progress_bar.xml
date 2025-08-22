@@ -11,6 +11,7 @@
                     onStyleClick="onStyleClick"/>
 
             <ProgressBarBody
+                    systray="props.systray"
                     style="state.style"
                     progressBarStyle="progressBarStyle"
                     progressPercentage="progressPercentage"
@@ -24,7 +25,8 @@
                     ongoingCancel="state.ongoingCancel"
                     onCancelClick="onCancelClick"
                     onCancelConfirmYes="onCancelConfirmYes"
-                    onCancelConfirmNo="onCancelConfirmNo"/>
+                    onCancelConfirmNo="onCancelConfirmNo"
+                    onMinimizeToSystray="onMinimizeToSystray"/>
 
             <ProgressBarSubList
                     t-if="hasSubProgress"
@@ -57,6 +59,11 @@
 
         <div t-att-class="'progress_cancel ' + props.style">
             <t t-if="props.cancellable and !props.ongoingCancel">
+                <t t-if="!props.systray">
+                    <button class="btn btn-sm btn-default fa fa-arrow-up o_progress_button progress_minimize_systray"
+                            t-on-click="props.onMinimizeToSystray"
+                            title="Minimize to systray"/>
+                </t>
                 <button class="btn btn-sm btn-default fa fa-times o_progress_button progress_cancel_confirm"
                         t-on-click="props.onCancelClick"
                         title="Cancel operation"/>
@@ -77,7 +84,7 @@
         <!-- Message and toggle button on the same row -->
         <div class="progress_message_row">
             <div t-att-class="'o_progress_details progress_message ' + props.style" t-out="props.message"/>
-            <div t-if="props.hasSubProgress" class="progress_toggle">
+            <div t-if="props.hasSubProgress" t-att-class="'progress_toggle ' + props.style">
                 <button class="btn btn-sm btn-link" t-on-click="props.onToggleSubProgress">
                     <i t-att-class="'fa ' + (props.showSubProgress ? 'fa-chevron-up' : 'fa-chevron-down')"/>
                 </button>

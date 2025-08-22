@@ -163,6 +163,17 @@ export class ProgressBar extends Component {
         this.state.ongoingCancel = false;
     }
 
+    onMinimizeToSystray = () => {
+        this.notification.add(_t("Progress moved to background"), {
+            type: "info",
+            sticky: false
+        });
+        this.progressService.unblockUI()
+
+        // Trigger event to open systray menu
+        this.bus.trigger('web_progress_minimize_to_systray', this.progressCode);
+    }
+
     onToggleSubProgress = () => {
         this.state.showSubProgress = !this.state.showSubProgress;
     }
@@ -218,7 +229,8 @@ export class ProgressBar extends Component {
     }
 
     async _getProgressViaRPC() {
-        if (!this.progressCode) {
+        // Check if component is still mounted before making RPC call
+        if (this.__owl__.status === "destroyed" || !this.progressCode) {
             return;
         }
 
@@ -236,6 +248,11 @@ export class ProgressBar extends Component {
                 {}
             );
 
+            // Check again if component is still mounted before processing results
+            if (this.__owl__.status === "destroyed") {
+                return;
+            }
+
             if (resultList.length > 0) {
                 const result = resultList[0];
                 if (['ongoing', 'done'].indexOf(result.state) >= 0) {
@@ -246,14 +263,29 @@ export class ProgressBar extends Component {
                 }
             }
         } catch (error) {
-            console.error('Error fetching progress:', error);
+            // Only log error if component is still mounted
+            if (this.__owl__.status !== "destroyed") {
+                console.error('Error fetching progress:', error);
+            }
         }
     }
 
     async _confirmCancelYes() {
-        await this.rpc("/web/progress/cancel", {
-            progress_code: this.progressCode,
-        });
+        // Check if component is still mounted before making RPC call
+        if (this.__owl__.status === "destroyed" || !this.progressCode) {
+            return;
+        }
+
+        try {
+            await this.rpc("/web/progress/cancel", {
+                progress_code: this.progressCode,
+            });
+        } catch (error) {
+            // Only log error if component is still mounted
+            if (this.__owl__.status !== "destroyed") {
+                console.error('Error canceling progress:', error);
+            }
+        }
     }
 
     get progressPercentage() {

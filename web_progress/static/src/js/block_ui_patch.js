@@ -72,6 +72,9 @@ patch(BlockUI.prototype, {
         if (progressCode === this.state.progressCode) {
             this.state.showProgress = false;
             this.state.progressCode = null;
+            if (this.state.blockUI) {
+                this.unblock();
+            }
         }
     },
 

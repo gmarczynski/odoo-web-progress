@@ -7,6 +7,7 @@ import {ProgressBarSubList} from "./progress_bar_sub_list";
 export class ProgressBarBody extends Component {
     static template = "web_progress.ProgressBarBody";
     static props = {
+        systray: { type: Boolean, optional: true },
         style: { type: String },
         progressBarStyle: { type: String },
         progressPercentage: { type: String },
@@ -22,5 +23,6 @@ export class ProgressBarBody extends Component {
         onCancelClick: { type: Function },
         onCancelConfirmYes: { type: Function },
         onCancelConfirmNo: { type: Function },
+        onMinimizeToSystray: { type: Function },
     };
 }

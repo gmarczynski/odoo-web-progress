@@ -78,7 +78,7 @@ const progressService = {
             state.blockUIProgressCode = progressCode;
 
             // Use Odoo's UI blocking with progress
-            ui.block({});
+            ui.block({progressCode: progressCode});
         }
 
         /**
