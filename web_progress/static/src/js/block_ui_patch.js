@@ -54,9 +54,8 @@ patch(BlockUI.prototype, {
      */
     _onProgressSet(event) {
         const progressCode = event.detail;
-        if (progressCode && !this.state.showProgress) {
+        if (progressCode) {
             this.state.progressCode = progressCode;
-            this.state.showProgress = true;
         }
     },
 
