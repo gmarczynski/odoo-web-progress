@@ -136,6 +136,13 @@ msgid "No"
 msgstr "Nie"
 
 #. module: web_progress
+#. odoo-javascript
+#: code:addons/web_progress/static/src/xml/web_progress_menu.xml:0
+#, python-format
+msgid "No ongoing operations"
+msgstr "Brak operacji w toku "
+
+#. module: web_progress
 #: model:ir.model.fields.selection,name:web_progress.selection__web_progress__state__ongoing
 msgid "Ongoing"
 msgstr "W toku"
