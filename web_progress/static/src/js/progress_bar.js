@@ -9,9 +9,6 @@ import { ProgressBarHeader } from "./progress_bar_header";
 import { ProgressBarBody } from "./progress_bar_body";
 import { ProgressBarSubList } from "./progress_bar_sub_list";
 
-const progressTimeout = 5000;
-const progressTimeoutWarn = progressTimeout * 2;
-
 export class ProgressBar extends Component {
     static template = "web_progress.ProgressBar";
     static components = {
@@ -48,7 +45,6 @@ export class ProgressBar extends Component {
 
         this.progressCode = this.props.code || false;
         this.systray = this.props.systray || false;
-        this.progressTimer = false;
         this.lastProgressList = null;
 
         onWillStart(async () => {
@@ -64,11 +60,11 @@ export class ProgressBar extends Component {
             this.bus.addEventListener('web_progress_update', this.showProgress.bind(this));
             this.bus.addEventListener('web_progress_cancel', this.handleCancel.bind(this));
             this.bus.addEventListener('web_progress_destroy', this.handleDestroy.bind(this));
-            this.bus.addEventListener('web_progress_refresh', this.handleRefresh.bind(this));
+            this.getProgressData();
         });
 
         onWillDestroy(() => {
-            this._cancelTimeout();
+            // No timeout cleanup needed anymore
         });
     }
 
@@ -76,8 +72,7 @@ export class ProgressBar extends Component {
         const progressCode = event.detail;
         if (!this.state.user) {
             this.progressCode = progressCode;
-            this._setTimeout();
-            this._getProgressViaRPC();
+            this.getProgressData();
         }
     }
 
@@ -129,9 +124,6 @@ export class ProgressBar extends Component {
         this.state.cancellable = cancellable;
         this.state.user = topProgress.user || "";
         this.state.subProgressList = progressList;
-
-        this._cancelTimeout();
-        this._setTimeout();
     }
 
     setStyle = (styleName) => {
@@ -168,7 +160,7 @@ export class ProgressBar extends Component {
             type: "info",
             sticky: false
         });
-        this.progressService.unblockUI()
+        this.progressService.unblockUI();
 
         // Trigger event to open systray menu
         this.bus.trigger('web_progress_minimize_to_systray', this.progressCode);
@@ -189,71 +181,25 @@ export class ProgressBar extends Component {
         const progressCode = event.detail;
         if (this.progressCode === progressCode) {
             this.state.visible = false;
-            this._cancelTimeout();
         }
     }
 
-    handleRefresh = (event) => {
-        const progressCode = event.detail;
-        if (this.progressCode === progressCode) {
-            this._getProgressViaRPC();
-        }
-    }
-
-    _setTimeout() {
-        if (!this.progressTimer) {
-            this.progressTimer = setTimeout(() => {
-                this._notifyTimeoutWarn();
-            }, progressTimeoutWarn);
-        }
-    }
-
-    _cancelTimeout() {
-        if (this.progressTimer) {
-            clearTimeout(this.progressTimer);
-            this.progressTimer = false;
-        }
-    }
-
-    _notifyTimeoutWarn() {
-        this._getProgressViaRPC();
-        this.progressTimer = setTimeout(() => {
-            this._notifyTimeoutDestr();
-        }, progressTimeoutWarn);
-    }
-
-    _notifyTimeoutDestr() {
-        this.progressTimer = setTimeout(() => {
-            this.bus.trigger('web_progress_destroy', this.progressCode);
-        }, progressTimeoutWarn);
-    }
-
-    async _getProgressViaRPC() {
-        // Check if component is still mounted before making RPC call
+    async getProgressData() {
+        // Check if component is still mounted before making service call
         if (this.__owl__.status === "destroyed" || !this.progressCode) {
             return;
         }
 
-        // Clear existing timer if any
-        if (this.progressTimer) {
-            clearTimeout(this.progressTimer);
-            this.progressTimer = false;
-        }
-
         try {
-            const resultList = await this.orm.call(
-                'web.progress',
-                'get_progress_rpc',
-                [this.progressCode],
-                {}
-            );
+            // Use the cached service method instead of direct RPC call
+            const resultList = await this.progressService.getProgressData(this.progressCode);
 
             // Check again if component is still mounted before processing results
             if (this.__owl__.status === "destroyed") {
                 return;
             }
 
-            if (resultList.length > 0) {
+            if (resultList && resultList.length > 0) {
                 const result = resultList[0];
                 if (['ongoing', 'done'].indexOf(result.state) >= 0) {
                     this.bus.trigger('web_progress_update', resultList);
@@ -271,20 +217,10 @@ export class ProgressBar extends Component {
     }
 
     async _confirmCancelYes() {
-        // Check if component is still mounted before making RPC call
-        if (this.__owl__.status === "destroyed" || !this.progressCode) {
-            return;
-        }
-
-        try {
-            await this.rpc("/web/progress/cancel", {
-                progress_code: this.progressCode,
-            });
-        } catch (error) {
-            // Only log error if component is still mounted
-            if (this.__owl__.status !== "destroyed") {
-                console.error('Error canceling progress:', error);
-            }
+        // Use the progress service's cancel method instead of direct RPC
+        const success = await this.progressService.cancelProgress(this.progressCode);
+        if (!success) {
+            console.error('Failed to cancel progress operation');
         }
     }
 

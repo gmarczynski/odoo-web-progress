@@ -42,8 +42,8 @@ export class ProgressMenu extends Component {
      * @private
      */
     onDropdownOpened = () => {
-        // Refresh progress data when the dropdown is opened
-        this.progressService.queryRecentOperations();
+        // No need to query recent operations - bus notifications handle updates
+        // and RPC polling handles fallback when bus fails
     }
 
     /**
