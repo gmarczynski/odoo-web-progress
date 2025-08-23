@@ -2,12 +2,13 @@
     'name': "Dynamic Progress Bar",
 
     'summary': """
-        Enhanced progress bar with composite components for operations that take more than 5 seconds.
+        Enhanced progress bar for long-running operations.
     """,
 
     'description': """
         Adds dynamic progress bar with expandable sub-progress details and cancel button to gray waiting screen.
         Features:
+        - Enhanced UI blocking with "Put to background" functionality
         - Composite component architecture with modular sub-components
         - Expandable/collapsible detailed progress view
         - Multiple style themes (standard, simple, nyan)
@@ -41,21 +42,21 @@
             'web_progress/static/src/scss/views.scss',
             'web_progress/static/src/scss/views_styles.scss',
 
-            # Sub-components (loaded first)
+            # Sub-components
             'web_progress/static/src/js/progress_bar_header.js',
             'web_progress/static/src/js/progress_bar_body.js',
             'web_progress/static/src/js/progress_bar_sub_item.js',
             'web_progress/static/src/js/progress_bar_sub_list.js',
 
-            # Main components (loaded before services)
+            # Main components
             'web_progress/static/src/js/progress_bar.js',
             'web_progress/static/src/js/progress_menu.js',
 
-            # Patches (loaded before services)
+            # Patches
             'web_progress/static/src/js/block_ui_patch.js',
             'web_progress/static/src/js/import_block_ui_patch.js',
 
-            # Core services (loaded last to ensure components are registered)
+            # Core services
             'web_progress/static/src/js/rpc_service.js',
             'web_progress/static/src/js/progress_service.js',
         ],
