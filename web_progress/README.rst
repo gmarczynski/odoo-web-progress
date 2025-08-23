@@ -87,6 +87,7 @@ Release Notes
 
 - port to Odoo 17.0
 - use OWL components to format progress and sub-progresses
+- add "put to background" button that unblocks the UI and opens the progress bar in the systray menu
 
 2.0 - 2023-01-29
 
