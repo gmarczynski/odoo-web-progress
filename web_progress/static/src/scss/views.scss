@@ -97,8 +97,8 @@
 .o_progress_systray {
   margin: 10px;
   width: 300px;
-  overflow-x: hidden; /* Changed from 'auto' to 'hidden' */
-  overflow-y: auto;   /* Keep vertical scrolling if needed */
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 .o_progress_navbar_dropdown {
     overflow: auto;
@@ -110,7 +110,7 @@
   visibility: visible;
   font-size: 16pt;
   font-weight: bold;
-  text-align: center; /* Ensure text is centered within the element */
+  text-align: center;
 }
 
 /* for composite styling */
