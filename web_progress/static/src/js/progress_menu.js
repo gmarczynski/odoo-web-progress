@@ -1,189 +1,107 @@
-// Part of web_progress. See LICENSE file for full copyright and licensing details.
-odoo.define('web_progress.ProgressMenu', function (require) {
-"use strict";
+/** @odoo-module **/
 
-var core = require('web.core');
-var session = require('web.session');
-var SystrayMenu = require('web.SystrayMenu');
-var Widget = require('web.Widget');
-var ProgressBar = require('web.progress.bar').ProgressBar;
+import { Component, useState, onMounted } from "@odoo/owl";
+import { useService, useBus } from "@web/core/utils/hooks";
+import { registry } from "@web/core/registry";
+import { Dropdown } from "@web/core/dropdown/dropdown";
+import { DropdownItem } from "@web/core/dropdown/dropdown_item";
+import { ProgressBar } from "./progress_bar";
 
 /**
  * Progress menu item in the systray part of the navbar
  */
-var ProgressMenu = Widget.extend({
-    template:'web_progress.ProgressMenu',
-    channel: 'web_progress',
-    progress_bars: [],
-    init: function(parent) {
-        this._super(parent);
-        this.call('bus_service', 'addChannel', this.channel);
-    },
-    start: function () {
-        core.bus.on('rpc_progress_destroy', this, this._removeProgressBar);
-        this.progressCounter = 0;
-        this.$progresses_preview = this.$('.o_mail_systray_dropdown_items');
-        if (!this.getSession().is_system) {
-            this.$el.toggleClass('hidden', !this.progressCounter);
-        }
-        this.call('bus_service', 'addEventListener', 'notification', this._onNotification.bind(this));
-        this._updateProgressMenu();
-        return this._super();
-    },
+export class ProgressMenu extends Component {
+    static template = "web_progress.ProgressMenu";
+    static components = { Dropdown, DropdownItem, ProgressBar };
+    static props = {};
 
-    // Private
-    /**
-     * Iterate bus notifications
-     * @private
-     */
-    _onNotification: function (event) {
-        const notifications = event.detail;
-        var self = this;
-        _.each(notifications, function (notification) {
-            self._handleNotification(notification);
+    setup() {
+        this.state = useState({
+            progressCounter: 0,
         });
-        this._updateProgressMenu();
-        this._queryRecentOperations();
-    },
-    /**
-     * On every bus notification schedule update of all progress and pass progress message to progress bar
-     * @private
-     */
-    _handleNotification: function(notification){
-        if (this.channel && (notification.type === this.channel)) {
-            // this._setTimerProgressPreview();
-            var progress = notification.payload[0];
-            this._processProgressData(progress.code, progress.state, progress.uid);
-            if (['ongoing', 'done'].indexOf(progress.state) >= 0) {
-                core.bus.trigger('rpc_progress', notification.payload)
-            }
-        }
-    },
 
-    /**
-     * Add progress bar
-     * @private
-     */
-    _addProgressBar: function(code) {
-        var progress_bar = this._findProgressBar(code);
-        if (progress_bar) {
-            return;
-        }
-        progress_bar = new ProgressBar(this, code);
-        this.progress_bars[code] = progress_bar;
-        progress_bar.appendTo(this.$progresses_preview);
-        this._updateProgressMenu();
-        return progress_bar;
-    },
-    /**
-     * Remove progress bar
-     * @private
-     */
-    _removeProgressBar: function(code) {
-        var progress_bar = this._findProgressBar(code);
-        if (progress_bar) {
-            progress_bar.destroy();
-            delete this.progress_bars[code];
-            this._updateProgressMenu();
-        }
-    },
-    /**
-     * Find progress bar
-     * @private
-     */
-    _findProgressBar: function(code) {
-        var found_bar = false;
-        if (this.progress_bars.hasOwnProperty(code)) {
-            found_bar = this.progress_bars[code];
-        }
-        return found_bar;
-    },
-    /**
-     * Update counter and style of progress menu
-     * @private
-     */
-    _updateProgressMenu: function() {
-        var session_uid = this.getSession().uid;
-        this.progressCounter = Object.keys(this.progress_bars).length;
-        this.$('.o_notification_counter').text(this.progressCounter);
-        if (this.progressCounter > 0) {
-            this.$('.fa-spinner').addClass('fa-spin');
-            this.$el.removeClass('o_no_notification');
-        } else {
-            this.$('.fa-spinner').removeClass('fa-spin');
-            this.$el.addClass('o_no_notification');
-        }
-        this.$('.o_notification_counter').toggleClass('o_hidden', !this.progressCounter);
-        if (!this.getSession().is_system) {
-            this.$el.toggleClass('o_hidden', !this.progressCounter);
-        }
-    },
-    /**
-     * Query server for recent operations in progress
-     * @private
-     */
-    _queryRecentOperations: function() {
-        var self = this;
-        this._rpc({
-            model: 'web.progress',
-            method: 'get_all_progress',
-            args: []
-        }, {'shadow': true}).then(function (codes_list) {
-            if (codes_list.length > 0) {
-                _.forEach(codes_list, function (item) {
-                    if (item.code) {
-                        var pb = self._addProgressBar(item.code);
-                        if (pb) {
-                            pb._getProgressViaRPC();
-                        }
-                    }
-                })
-            }
-        })
-    },
-    /**
-     * Process and display progress details
-     * @private
-     */
-    _processProgressData: function(code, state, uid) {
-        var session_uid = this.getSession().uid;
-        var session_is_system = this.getSession().is_system;
-        var progress_bar = this._findProgressBar(code);
-        if (session_uid !== uid && !session_is_system) {
-            return;
-        }
-        if (!progress_bar && state === 'ongoing') {
-            this._addProgressBar(code);
-        }
-        if (progress_bar && state === 'done') {
-            this._removeProgressBar(code);
-        }
-    },
-    /**
-     * Get particular model view to redirect on click of progress scheduled on that model.
-     * @private
-     * @param {string} model
-     */
-    _getProgressModelViewID: function (model) {
-        return this._rpc({
-            model: model,
-            method: 'get_progress_view_id'
+        this.user = useService("user");
+        this.progressService = useService("progressService");
+        this.bus = this.progressService.bus;
+
+        // Use useBus to subscribe to progress changes
+        useBus(this.bus, 'web_progress_destroy', this._handleProgressBarChange);
+        useBus(this.bus, 'web_progress_set_code', this._handleProgressBarChange);
+        useBus(this.bus, 'web_progress_request', this._handleProgressBarChange);
+        useBus(this.bus, 'web_progress_response', this._handleProgressBarChange);
+        useBus(this.bus, 'web_progress_minimize_to_systray', this._handleMinimizeToSystray);
+
+        onMounted(() => {
+            // Update the counter when the component is mounted
+            this._updateProgressCounter();
         });
-    },
+    }
+
     /**
-     * Check wether progress systray dropdown is open or not
+     * Called when dropdown is opened
      * @private
-     * @returns {boolean}
      */
-    _isOpen: function () {
-        return this.$el.hasClass('open');
-    },
+    onDropdownOpened = () => {
+        // No need to query recent operations - bus notifications handle updates
+        // and RPC polling handles fallback when bus fails
+    }
 
-});
+    /**
+     * Handle any progress bar change event
+     * @private
+     */
+    _handleProgressBarChange = () => {
+        this._updateProgressCounter();
+    }
 
-SystrayMenu.Items.push(ProgressMenu);
+    /**
+     * Handle minimize to systray event
+     * @private
+     */
+    _handleMinimizeToSystray = (event) => {
+        // Update counter first
+        this._updateProgressCounter();
 
-return {
-    ProgressMenu: ProgressMenu,
+        // Open the dropdown after a short delay
+        setTimeout(() => {
+            const globalDropdown =
+                document.querySelector('.o_mail_systray_item button.dropdown-toggle');
+            if (globalDropdown &&
+                globalDropdown.closest('.o_mail_systray_item').querySelector('i.fa-refresh')) {
+                const clickEvent = new Event('click', {bubbles: true});
+                globalDropdown.dispatchEvent(clickEvent);
+            }
+        }, 200);
+    }
+
+    /**
+     * Update the progress counter
+     * @private
+     */
+    _updateProgressCounter() {
+        this.state.progressCounter = this.progressService.getProgressBarCount();
+    }
+
+    get isVisible() {
+        return this.user.isSystem || this.state.progressCounter > 0;
+    }
+
+    get hasProgressBars() {
+        return this.state.progressCounter > 0;
+    }
+
+    /*
+    * Used in template to iterate existing progress codes
+    */
+    get progressBarCodes() {
+        return this.progressService.getProgressBarCodes();
+    }
+}
+
+// Register in systray
+export const systrayItem = {
+    Component: ProgressMenu,
+    isDisplayed: () => true,
 };
-});
+
+registry.category("systray").add("ProgressMenu", systrayItem, { sequence: 100 });

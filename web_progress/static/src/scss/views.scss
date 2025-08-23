@@ -1,0 +1,235 @@
+/**
+ * Style for progress bar
+ */
+
+.o_progress_navbar_dropdown_channels {
+    min-width: 450px;
+}
+
+.o_blockUI {
+    opacity: 1.0;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.progress_outline {
+    min-width: 100%;
+    padding: 20px;
+    color: #666666;
+    background: white;
+    display: -webkit-box;
+    text-align: center;
+}
+
+.progress_outline.o_progress_systray {
+    min-width: 100%;
+    margin-left: 0;
+    border-radius: 0;
+    padding: 5px;
+    box-shadow: none;
+}
+
+.progress_frame {
+    min-width: 75%;
+    background-color: rgba(45, 53, 17, 0.16);
+    margin-top: 10px;
+    margin-bottom: 5px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.progress_bar {
+    width: 1%;
+    height: 10px;
+    background-color: #28a745;
+    transition: width .5s ease;
+}
+
+.progress_bar.o_progress_bar_timeout {
+    transition: background-color 50s ease;
+    background-color: yellow;
+}
+
+.progress_bar.o_progress_bar_timeout_destroy {
+    transition: background-color 50s ease;
+    background-color: red;
+}
+
+.progress_cancel, .progress_minimize_systray {
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: 3px;
+    text-align: center;
+}
+
+.progress_minimize_systray {
+    margin-top: 0px;
+}
+
+.progress_cancel_confirm {
+    padding: 8px;
+}
+
+.progress_cancel_confirm, .progress_cancel_yes, .progress_cancel_no {
+    border: hidden;
+}
+
+.progress_time_eta {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 5px;
+    margin-top: 5px;
+}
+
+.progress_time_eta2 {
+    text-align: left;
+    vertical-align: middle;
+    margin-top: 0px;
+}
+
+.o_progress_message, .o_progress_button {
+    background-color: transparent;
+}
+
+.progress_cancel.o_cancel_message {
+    display: inherit;
+}
+
+.o_progress_systray {
+  margin: 10px;
+  width: 300px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.o_progress_navbar_dropdown {
+    overflow: auto;
+    max-height: 90vh;
+    padding-right: 5px;
+}
+
+.progress_percent {
+  visibility: visible;
+  font-size: 16pt;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* for composite styling */
+
+.progress_info_row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -2px;
+  position: relative;
+}
+
+.progress_toggle {
+  font-size: 12px;
+  position: absolute;
+  right: 0;
+}
+
+.progress_sub_list {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  text-align: left;
+}
+
+.progress_sub_header {
+  font-size: 12px;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.progress_sub_item {
+  margin-bottom: 8px;
+  padding: 4px;
+  border-radius: 2px;
+}
+
+.progress_sub_item_header {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+
+.progress_sub_level {
+  font-family: monospace;
+  margin-right: 5px;
+}
+
+.progress_sub_percent {
+  font-weight: bold;
+  margin-right: 8px;
+  min-width: 40px;
+}
+
+.progress_sub_count {
+  margin-right: 8px;
+  font-size: 12px;
+}
+
+.progress_sub_message {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress_sub_bar_container {
+  width: 100%;
+}
+
+.progress_sub_bar_frame {
+  width: 100%;
+  height: 4px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress_sub_bar {
+  height: 100%;
+  background-color: #28a745;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.o_progress_systray .progress_sub_list {
+  max-height: 150px;
+  font-size: 12px;
+}
+
+.o_progress_systray .progress_sub_bar_frame {
+  height: 3px;
+}
+
+.progress_message_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.progress_message_row .o_progress_details {
+  flex: 1;
+  text-align: left;
+  margin-right: 10px;
+}
+
+.progress_message_row .progress_toggle {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+/* UI blocking progress bar styles */
+.o_web_progress_blockui_progress {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+}

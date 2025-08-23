@@ -12,13 +12,13 @@ Progress bar for Odoo waiting screen, possibility to cancel an ongoing operation
         :align: center
 
 
-**web_progress** exists for Odoo 11.0, 12.0, 13.0, 14.0, 15.0, 16.0 (CE and EE).
+**web_progress** is compatible with Odoo 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0 (CE and EE).
 
 Author: Grzegorz Marczyński
 
 License: LGPL-3.
 
-Copyright © 2023 Grzegorz Marczyński
+Copyright © 2025 Grzegorz Marczyński
 
 
 Features
@@ -31,31 +31,35 @@ Features
         :width: 50%
         :align: right
 
-- progress reporting for all standard Odoo import and export operations
-- system tray menu that lists ongoing operations initiated by the logged user (all operations visible to Administrator)
-- support for all operations initiated through UI and executed by planned activities (cron)
-- generator-like method to simply add progress reporting to any iteration (support for sub-iterations)
-
+- Progress reporting for all standard Odoo import and export operations
+- System tray menu that lists ongoing operations initiated by the logged user (all operations visible to Administrator)
+- Support for all operations initiated through UI and executed by planned activities (cron)
+- Generator-like method to simply add progress reporting to any iteration (support for sub-iterations)
+- UI blocking feature (inactive by default in Odoo 17) with "Put to background" option
+- Real-time progress updates via longpolling with fallback to periodic polling
+- Operation cancellation with proper exception handling
+- Multiple progress bar styles (standard, simple, nyan cat)
+- Background operation management through system tray
 
 For developers
 ---------------
 
-Typically when your code executes any long-term operation there is a loop over a `collection` in your code.
+Typically when your code executes any long-running operation there is a loop over a `collection` in your code.
 
 In order to report progress of the operation, wrap the `collection` with `self.web_progress_iter(collection, msg="Message")`
 
 Say, your operation's main method looks as follows:
 
-.. code-block::
+.. code-block:: python
 
     def action_operation(self):
         for rec in self:
-            rec.do_somethig()
+            rec.do_something()
 
 
 Then a progress-reporting-ready version would be:
 
-.. code-block::
+.. code-block:: python
 
     def action_operation(self):
         for rec in self.web_progress_iter(self, msg="Message"):
@@ -64,7 +68,7 @@ Then a progress-reporting-ready version would be:
 
 or a simpler version for recordsets:
 
-.. code-block::
+.. code-block:: python
 
     def action_operation(self):
         for rec in self.with_progress(msg="Message"):
@@ -72,19 +76,45 @@ or a simpler version for recordsets:
 
 Progress tracking may be added to sub-operations as well:
 
-.. code-block::
+.. code-block:: python
 
     def action_operation(self):
         for rec in self.with_progress(msg="Message"):
             lines = rec.get_lines()
-            for line in lines.with_progress("Sub-operation")
+            for line in lines.with_progress("Sub-operation"):
                 line.do_something()
+
+**Advanced usage:**
+
+.. code-block:: python
+
+    # For generators or when len() cannot be called
+    for item in self.web_progress_iter(data_generator, total=10000, msg="Processing"):
+        process_item(item)
+
+    # With cancellation handling
+    try:
+        for rec in self.with_progress(msg="Critical operation"):
+            rec.perform_task()
+    except UserError as e:
+        if "cancelled" in str(e):
+            self.cleanup_after_cancel()
+
+Both methods accept parameters: `msg`, `total`, `cancellable`, and `log_level`.
 
 Release Notes
 -------------
 
+3.0 - 2025-08-23
+
+- Port to Odoo 17.0
+- Use OWL components to format progress and sub-progresses
+- Add "put to background" button that unblocks the UI and opens the progress bar in the systray menu
+- UI blocking feature (inactive by default in Odoo 17)
+
 2.0 - 2023-01-29
-- port to Odoo 16.0
+
+- Port to Odoo 16.0
 
 2.0 - 2021-08-22 - new functionality and fixes:
 
@@ -116,3 +146,4 @@ Release Notes
 - fix memory leak in time-tracking internal data
 
 1.0 - 2019-06-20 - initial version
+
