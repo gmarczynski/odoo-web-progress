@@ -2,19 +2,26 @@
     'name': "Dynamic Progress Bar",
 
     'summary': """
-        Progress bar for operations that take more than 5 seconds.
+        Enhanced progress bar for long-running operations.
     """,
 
-    # 'description': """
-    # Adds dynamic progress bar and cancel button to gray waiting screen.
-    # Try to import some CSV file to any model to see it in action.
-    # """,
+    'description': """
+        Adds dynamic progress bar with expandable sub-progress details and cancel button to gray waiting screen.
+        Features:
+        - Enhanced UI blocking with "Put to background" functionality
+        - Composite component architecture with modular sub-components
+        - Expandable/collapsible detailed progress view
+        - Multiple style themes (standard, simple, nyan)
+        - Reactive progress updates
+        - Systray integration with dropdown menu
+        Try to import some CSV file to any model to see it in action.
+    """,
 
     'author': "Grzegorz Marczyński",
     'category': 'Productivity',
     'website': 'https://github.com/gmarczynski/odoo-web-progress',
 
-    'version': '16.0.2.1',
+    'version': '18.0.3.0',
 
     'depends': ['web',
                 'bus',
@@ -26,15 +33,32 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'web_progress/static/src/js/rpc_service.js',
-            'web_progress/static/src/js/loading.js',
-            'web_progress/static/src/js/progress_bar.js',
-            '/web_progress/static/src/js/ajax.js',
-            '/web_progress/static/src/js/progress_menu.js',
-            '/web_progress/static/src/css/views.css',
-            '/web_progress/static/src/css/views_styles.css',
+
+            # Templates
             'web_progress/static/src/xml/progress_bar.xml',
             'web_progress/static/src/xml/web_progress_menu.xml',
+
+            # Styles
+            'web_progress/static/src/scss/views.scss',
+            'web_progress/static/src/scss/views_styles.scss',
+
+            # Sub-components
+            'web_progress/static/src/js/progress_bar_header.js',
+            'web_progress/static/src/js/progress_bar_body.js',
+            'web_progress/static/src/js/progress_bar_sub_item.js',
+            'web_progress/static/src/js/progress_bar_sub_list.js',
+
+            # Main components
+            'web_progress/static/src/js/progress_bar.js',
+            'web_progress/static/src/js/progress_menu.js',
+
+            # Patches
+            'web_progress/static/src/js/block_ui_patch.js',
+            'web_progress/static/src/js/import_block_ui_patch.js',
+
+            # Core services
+            'web_progress/static/src/js/rpc_service.js',
+            'web_progress/static/src/js/progress_service.js',
         ],
     },
     'demo': [
