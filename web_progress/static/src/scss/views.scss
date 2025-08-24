@@ -18,14 +18,17 @@
     background: white;
     display: -webkit-box;
     text-align: center;
+    border-width: 1px;
+    border-color: #eee;
+    border-style: solid;
+    border-radius: 4px;
 }
 
 .progress_outline.o_progress_systray {
     min-width: 100%;
     margin-left: 0;
-    border-radius: 0;
+    border-radius: 4px;
     padding: 5px;
-    box-shadow: none;
 }
 
 .progress_frame {

@@ -1,8 +1,8 @@
 /** @odoo-module **/
 
-import {download} from "@web/core/network/download";
-import {registry} from "@web/core/registry";
-import {jsonrpc} from "@web/core/network/rpc_service";
+import { download } from "@web/core/network/download";
+import { registry } from "@web/core/registry";
+import { rpc } from "@web/core/network/rpc";
 
 // -----------------------------------------------------------------------------
 // download adapted to handle progress reporting
@@ -11,8 +11,7 @@ import {jsonrpc} from "@web/core/network/rpc_service";
 const org_download = download._download;
 
 function _download(options) {
-
-    let BlockUI  = registry.category("main_components").get("BlockUI");
+    let BlockUI = registry.category("main_components").get("BlockUI");
     // add progress_code to the context
     if (options.data) {
         var data = false;
@@ -38,12 +37,13 @@ function _download(options) {
             BlockUI.props.bus.trigger("UNBLOCK", {});
         })
     }
+    return org_download(options);
 }
 
 download._download = _download;
 
 // -----------------------------------------------------------------------------
-// RPC service with progress code
+// RPC function with progress code
 // -----------------------------------------------------------------------------
 
 function pseudoUuid(a) {
@@ -64,28 +64,23 @@ function findContext(params) {
     return ret;
 }
 
-export const rpcService = {
-    async: true,
-    start: function (env) {
-        /**
-         * @param {string} route
-         * @param {Object} params
-         * @param {Object} [settings]
-         * @param {boolean} settings.silent
-         * @param {XMLHttpRequest} settings.xhr
-         */
-        return function rpc(route, params = {}, settings = {}) {
-            if (!settings.progress_code) {
-                settings.progress_code = pseudoUuid();
-            }
-            var context = findContext(params);
-            if (context) {
-                context.progress_code = settings.progress_code;
-            }
-            return jsonrpc(route, params, {bus: env.bus, ...settings});
-        };
-    },
+// Store the original rpc function
+const originalRpc = rpc._rpc;
+
+// Override the internal _rpc function to add progress code support
+rpc._rpc = function (url, params = {}, settings = {}) {
+    // Add progress code if not already present
+    if (!settings.progress_code) {
+        settings.progress_code = pseudoUuid();
+    }
+
+    // Find and update context with progress code
+    var context = findContext(params);
+    if (context) {
+        context.progress_code = settings.progress_code;
+    }
+
+    // Call the original RPC function
+    return originalRpc.call(this, url, params, settings);
 };
 
-// replace RPC services
-registry.category("services").add("rpc", rpcService, {force: true});

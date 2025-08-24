@@ -4,28 +4,28 @@
     <t t-name="web_progress.ProgressMenu" owl="1">
         <div t-if="isVisible" t-att-class="'o_mail_systray_item ' + (hasProgressBars ? '' : ' o_no_notification')">
             <Dropdown onStateChanged="onDropdownOpened">
-                <t t-set-slot="toggler">
-                    <button class="btn dropdown-toggle o-no-caret o-dropdown--narrow"
-                            type="button"
-                            title="Progress">
-                        <i t-att-class="'fa fa-refresh' + (hasProgressBars ? ' fa-spin' : '')"/>
-                        <span t-if="hasProgressBars"
-                              class="o_notification_counter badge rounded-pill"
-                              t-esc="state.progressCounter"/>
-                    </button>
-                </t>
-                <div class="o_mail_systray_dropdown_items o_progress_systray text-center o_progress_navbar_dropdown_channels">
-                    <t t-if="hasProgressBars">
-                        <t t-foreach="progressBarCodes" t-as="code" t-key="code">
-                            <ProgressBar t-props="{ code: code, systray: true }"/>
+                <button class="btn dropdown-toggle o-no-caret o-dropdown--narrow"
+                        type="button"
+                        title="Progress">
+                    <i t-att-class="'fa fa-refresh' + (hasProgressBars ? ' fa-spin' : '')"/>
+                    <span t-if="hasProgressBars"
+                          class="o_notification_counter badge rounded-pill"
+                          t-esc="state.progressCounter"/>
+                </button>
+                <t t-set-slot="content">
+                    <div class="o_mail_systray_dropdown_items o_progress_systray text-center o_progress_navbar_dropdown_channels">
+                        <t t-if="hasProgressBars">
+                            <t t-foreach="progressBarCodes" t-as="code" t-key="code">
+                                <ProgressBar t-props="{ code: code, systray: true }"/>
+                            </t>
                         </t>
-                    </t>
-                    <t t-else="">
-                        <div class="text-muted p-3 fst-italic">
-                            No ongoing operations
-                        </div>
-                    </t>
-                </div>
+                        <t t-else="">
+                            <div class="text-muted p-3 fst-italic">
+                                No ongoing operations
+                            </div>
+                        </t>
+                    </div>
+                </t>
             </Dropdown>
         </div>
     </t>

@@ -75,7 +75,7 @@ patch(ImportBlockUI, {
                 <t t-if="props.blockComponent" t-component="props.blockComponent.class" t-props="props.blockComponent.props"/>
             </div>
             <div t-if="hasProgress" class="o_web_progress_blockui_progress mt-4">
-               <ProgressBar t-props="{ code: state.progressCode, systray: false }"/> 
+               <ProgressBar t-props="{ code: state.progressCode, systray: false }"/>
             </div>
         </div>`
 });

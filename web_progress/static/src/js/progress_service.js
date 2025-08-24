@@ -1,12 +1,14 @@
 /** @odoo-module **/
 
 import {registry} from "@web/core/registry";
+import { rpc, rpcBus } from "@web/core/network/rpc";
+import { user } from "@web/core/user";
 
 const UI_BLOCK_TIMEOUT = 1000; // 1 second before showing UI block
 
 const progressService = {
-    dependencies: ["rpc", "bus_service", "orm", "user", "ui"],
-    start(env, {rpc, bus_service, orm, user, ui}) {
+    dependencies: ["bus_service", "orm", "ui"],
+    start(env, {bus_service, orm, ui}) {
         const REFRESH_PERIOD = 5000; // 5 seconds
         const CACHE_TIMEOUT = REFRESH_PERIOD * 2; // 10 seconds - twice the refresh period
         const BUS_TIMEOUT = REFRESH_PERIOD * 2; // 10 seconds - detect bus failure
@@ -28,7 +30,7 @@ const progressService = {
         const channel = 'web_progress';
 
         // Monitor RPC requests
-        env.bus.addEventListener("RPC:REQUEST", (ev) => {
+        rpcBus.addEventListener("RPC:REQUEST", (ev) => {
             const {data, url, settings} = ev.detail;
             const params = data.params;
             if (settings.progress_code &&
@@ -38,7 +40,7 @@ const progressService = {
             }
         });
 
-        env.bus.addEventListener("RPC:RESPONSE", (ev) => {
+        rpcBus.addEventListener("RPC:RESPONSE", (ev) => {
             const {data, error, settings} = ev.detail;
             if (settings.progress_code) {
                 env.bus.trigger('web_progress_response', settings.progress_code);

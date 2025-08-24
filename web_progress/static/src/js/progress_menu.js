@@ -3,6 +3,7 @@
 import { Component, useState, onMounted } from "@odoo/owl";
 import { useService, useBus } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { ProgressBar } from "./progress_bar";
@@ -20,7 +21,7 @@ export class ProgressMenu extends Component {
             progressCounter: 0,
         });
 
-        this.user = useService("user");
+        this.user = user;
         this.progressService = useService("progressService");
         this.bus = this.progressService.bus;
 

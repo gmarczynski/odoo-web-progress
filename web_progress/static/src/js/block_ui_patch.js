@@ -4,7 +4,7 @@ import { BlockUI } from "@web/core/ui/block_ui";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
 import { xml } from "@odoo/owl";
-import {ProgressBar} from "./progress_bar";
+import { ProgressBar } from "./progress_bar";
 
 patch(BlockUI, {
     components: {
@@ -17,7 +17,7 @@ patch(BlockUI.prototype, {
     setup() {
         super.setup();
 
-        // Add progress-related state
+        // Add progress-related state to existing state
         Object.assign(this.state, {
             showProgress: false,
             progressCode: null,
@@ -33,7 +33,6 @@ patch(BlockUI.prototype, {
         } catch (error) {
             console.warn('ProgressService not available in BlockUI patch');
         }
-
     },
 
     /**
@@ -72,7 +71,7 @@ patch(BlockUI.prototype, {
         if (progressCode === this.state.progressCode) {
             this.state.showProgress = false;
             this.state.progressCode = null;
-            if (this.state.blockUI) {
+            if (this.state.blockState !== this.BLOCK_STATES.UNBLOCKED) {
                 this.unblock();
             }
         }
@@ -83,17 +82,29 @@ patch(BlockUI.prototype, {
     }
 });
 
-// Patch the template to include progress bar
+// Patch the template to include progress bar in the Odoo 18 structure
 patch(BlockUI, {
     template: xml`
-        <div t-att-class="state.blockUI ? 'o_blockUI fixed-top d-flex justify-content-center align-items-center flex-column vh-100' : ''">
-          <t t-if="state.blockUI">
-            <div class="o_spinner mb-4">
-                <img src="/web/static/img/spin.svg" alt="Loading..."/>
+        <t t-if="state.blockState === BLOCK_STATES.UNBLOCKED">
+            <div/>
+        </t>
+        <t t-else="">
+            <t t-set="visiblyBlocked" t-value="state.blockState === BLOCK_STATES.VISIBLY_BLOCKED"/>
+            <div class="o_blockUI fixed-top d-flex justify-content-center align-items-center flex-column vh-100"
+                 t-att-class="visiblyBlocked ? '' : 'o_blockUI_invisible'">
+                <t t-if="visiblyBlocked">
+                    <div class="o_spinner mb-4">
+                        <img src="/web/static/img/spin.svg" alt="Loading..."/>
+                    </div>
+                    <div t-if="hasProgress" class="o_web_progress_blockui_progress mt-4">
+                       <ProgressBar t-props="{ code: state.progressCode, systray: false }"/>
+                    </div>
+                    <div t-else="" class="o_message text-center px-4">
+                        <t t-esc="state.line1"/><br/>
+                        <t t-esc="state.line2"/>
+                    </div>
+                </t>
             </div>
-            <div t-if="hasProgress" class="o_web_progress_blockui_progress mt-4">
-               <ProgressBar t-props="{ code: state.progressCode, systray: false }"/> 
-            </div>
-          </t>
-        </div>`
+        </t>
+    `
 });

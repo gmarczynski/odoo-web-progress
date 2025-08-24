@@ -36,7 +36,6 @@ export class ProgressBar extends Component {
             showSubProgress: false,
         });
 
-        this.rpc = useService("rpc");
         this.notification = useService("notification");
         this.orm = useService("orm");
         this.progressService = useService("progressService");
