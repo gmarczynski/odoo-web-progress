@@ -94,6 +94,10 @@ patch(BlockUI, {
             <div t-if="hasProgress" class="o_web_progress_blockui_progress mt-4">
                <ProgressBar t-props="{ code: state.progressCode, systray: false }"/> 
             </div>
+            <div t-else="" class="o_message text-center px-4">
+                <t t-esc="state.line1"/> <br/>
+                <t t-esc="state.line2"/>
+            </div>
           </t>
         </div>`
 });

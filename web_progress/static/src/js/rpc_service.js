@@ -38,6 +38,7 @@ function _download(options) {
             BlockUI.props.bus.trigger("UNBLOCK", {});
         })
     }
+    return org_download(options);
 }
 
 download._download = _download;

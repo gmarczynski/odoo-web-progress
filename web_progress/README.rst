@@ -105,6 +105,11 @@ Both methods accept parameters: `msg`, `total`, `cancellable`, and `log_level`.
 Release Notes
 -------------
 
+3.1 - 2025-09-07
+
+- Minor fixes
+- Added shine effect to progress bar
+
 3.0 - 2025-08-23
 
 - Port to Odoo 17.0
