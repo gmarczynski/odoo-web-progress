@@ -105,10 +105,6 @@ patch(BlockUI, {
                     </div>
                 </t>
             </div>
-        <div t-else="" class="o_message text-center px-4">
-                <t t-esc="state.line1"/> <br/>
-                <t t-esc="state.line2"/>
-            </div>
-          </t>
+        </t>
     `
 });
