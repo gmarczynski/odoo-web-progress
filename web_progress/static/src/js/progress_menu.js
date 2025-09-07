@@ -66,9 +66,9 @@ export class ProgressMenu extends Component {
         // Open the dropdown after a short delay
         setTimeout(() => {
             const globalDropdown =
-                document.querySelector('.o_mail_systray_item button.dropdown-toggle');
+                document.querySelector('.o_progress_systray_item button.dropdown-toggle');
             if (globalDropdown &&
-                globalDropdown.closest('.o_mail_systray_item').querySelector('i.fa-refresh')) {
+                globalDropdown.closest('.o_progress_systray_item').querySelector('i.fa-refresh')) {
                 const clickEvent = new Event('click', {bubbles: true});
                 globalDropdown.dispatchEvent(clickEvent);
             }

@@ -1,5 +1,6 @@
 # Part of web_progress. See LICENSE file for full copyright and licensing details.
-from odoo import models, api, registry, fields, _, SUPERUSER_ID
+from odoo import models, api, fields, _, SUPERUSER_ID
+from odoo.modules.registry import Registry
 from odoo.exceptions import UserError
 from threading import RLock
 from datetime import datetime, timedelta
@@ -96,7 +97,7 @@ class WebProgress(models.TransientModel):
         External call to get progress for given code
         :param code: web progress code
         """
-        with registry(self.env.cr.dbname).cursor() as new_cr:
+        with Registry(self.env.cr.dbname).cursor() as new_cr:
             # Create a new environment with new cursor database
             new_env = api.Environment(new_cr, self.env.uid, self.env.context)
             # with_env replace original env for this method
@@ -263,7 +264,7 @@ class WebProgress(models.TransientModel):
             return
         code = vals_list[0].get('code')
         try:
-            with registry(self.env.cr.dbname).cursor() as new_cr:
+            with Registry(self.env.cr.dbname).cursor() as new_cr:
                 # Create a new environment with a new cursor
                 new_env = api.Environment(new_cr, self.env.uid, self.env.context)
                 # clear whatever is to be computed or written
@@ -292,7 +293,7 @@ class WebProgress(models.TransientModel):
         :return: (recordset) res.users of the user that cancelled the operation
         """
         code = params.get('code')
-        with registry(self.env.cr.dbname).cursor() as new_cr:
+        with Registry(self.env.cr.dbname).cursor() as new_cr:
             # use new cursor to check for cancel
             query = """
             SELECT create_uid FROM web_progress
