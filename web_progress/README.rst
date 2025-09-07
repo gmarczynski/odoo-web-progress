@@ -105,13 +105,14 @@ Both methods accept parameters: `msg`, `total`, `cancellable`, and `log_level`.
 Release Notes
 -------------
 
+3.1 - 2025-09-07
+
+- Minor fixes
+- Added shine effect to progress bar
+
 3.0 - 2025-08-24
 
-- Port to Odoo 18.0
-
-3.0 - 2025-08-23
-
-- Port to Odoo 17.0
+- Port to Odoo 17.0 and Odoo 18.0
 - Use OWL components to format progress and sub-progresses
 - Add "put to background" button that unblocks the UI and opens the progress bar in the systray menu
 - UI blocking feature (inactive by default in Odoo 17)
