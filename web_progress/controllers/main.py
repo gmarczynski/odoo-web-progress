@@ -19,7 +19,7 @@ class WPReportController(ReportController):
 
 class WebProgressController(http.Controller):
 
-    @http.route(['/web/progress/cancel'], type='json', auth="user")
+    @http.route(['/web/progress/cancel'], type='jsonrpc', auth="user")
     def cancel_progress(self, progress_code):
         """
         Cancel a progress operation

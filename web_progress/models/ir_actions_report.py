@@ -1,5 +1,5 @@
 # Part of web_progress. See LICENSE file for full copyright and licensing details.
-from odoo import models, api, registry, fields, _
+from odoo import models, api, _
 
 
 class IrActionsReport(models.Model):
@@ -9,7 +9,7 @@ class IrActionsReport(models.Model):
         """
         Add progress_iter to the context in order to track progress of iterations inside report generation method
         """
-        if 'progress_code' in self._context and values and 'docs' in values:
+        if 'progress_code' in self.env.context and values and 'docs' in values:
             new_values = values.copy()
             new_values['docs'] = self.web_progress_iter(values.get('docs'), "Generating HTML")
         else:

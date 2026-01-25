@@ -29,22 +29,47 @@ const progressService = {
 
         const channel = 'web_progress';
 
+        /**
+         * Extract progress_code from RPC params context
+         */
+        function getProgressCodeFromParams(params) {
+            if (!params) return null;
+            // Check kwargs.context first (ORM calls)
+            if (params.kwargs?.context?.progress_code) {
+                return params.kwargs.context.progress_code;
+            }
+            // Check direct context (other calls)
+            if (params.context?.progress_code) {
+                return params.context.progress_code;
+            }
+            // Check args (last argument might be context)
+            if (params.args?.length > 0) {
+                const lastArg = params.args[params.args.length - 1];
+                if (lastArg?.progress_code) {
+                    return lastArg.progress_code;
+                }
+            }
+            return null;
+        }
+
         // Monitor RPC requests
         rpcBus.addEventListener("RPC:REQUEST", (ev) => {
             const {data, url, settings} = ev.detail;
             const params = data.params;
-            if (settings.progress_code &&
-                validateCall(url, data.method, params, settings)) {
-                env.bus.trigger('web_progress_request', settings.progress_code);
-                startProgressTracking(settings.progress_code);
+            const progressCode = getProgressCodeFromParams(params);
+            if (progressCode && validateCall(url, data.method, params, settings)) {
+                env.bus.trigger('web_progress_request', progressCode);
+                startProgressTracking(progressCode);
             }
         });
 
         rpcBus.addEventListener("RPC:RESPONSE", (ev) => {
             const {data, error, settings} = ev.detail;
-            if (settings.progress_code) {
-                env.bus.trigger('web_progress_response', settings.progress_code);
-                clearProgressTracking(settings.progress_code);
+            const params = data.params;
+            const progressCode = getProgressCodeFromParams(params);
+            if (progressCode) {
+                env.bus.trigger('web_progress_response', progressCode);
+                clearProgressTracking(progressCode);
             }
         });
 

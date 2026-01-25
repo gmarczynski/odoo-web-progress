@@ -52,24 +52,26 @@
     <t t-name="web_progress.ProgressBarBody" owl="1">
         <div class="progress_time_elapsed"/>
 
-        <div t-att-class="'progress_frame ' + props.style">
-            <div t-att-class="'progress_bar ' + props.style" t-att-style="props.progressBarStyle"/>
-        </div>
-        <div t-if="props.timeEta" t-att-class="'progress_time_eta ' + props.style" t-out="props.timeEta"/>
-
-        <div t-att-class="'progress_cancel ' + props.style">
-            <t t-if="props.cancellable and !props.ongoingCancel">
-                <t t-if="!props.systray">
-                    <button class="btn btn-sm btn-default fa fa-arrow-up o_progress_button progress_minimize_systray"
-                            t-on-click="props.onMinimizeToSystray"
-                            title="Minimize to systray"/>
+        <!-- Progress bar row with buttons on the right -->
+        <div class="progress_bar_row">
+            <div t-att-class="'progress_frame ' + props.style">
+                <div t-att-class="'progress_bar ' + props.style" t-att-style="props.progressBarStyle"/>
+            </div>
+            <div t-if="props.timeEta" t-att-class="'progress_time_eta ' + props.style" t-out="props.timeEta"/>
+            <div t-att-class="'progress_cancel ' + props.style">
+                <t t-if="props.cancellable and !props.ongoingCancel">
+                    <t t-if="!props.systray">
+                        <button class="btn btn-sm btn-default fa fa-arrow-up o_progress_button progress_minimize_systray"
+                                t-on-click="props.onMinimizeToSystray"
+                                title="Minimize to systray"/>
+                    </t>
+                    <button class="btn btn-sm btn-default fa fa-times o_progress_button progress_cancel_confirm"
+                            t-on-click="props.onCancelClick"
+                            title="Cancel operation"/>
                 </t>
-                <button class="btn btn-sm btn-default fa fa-times o_progress_button progress_cancel_confirm"
-                        t-on-click="props.onCancelClick"
-                        title="Cancel operation"/>
-            </t>
+            </div>
             <t t-if="props.ongoingCancel">
-                <div class="o_progress_message">Cancel ongoing operation?</div>
+                <div class="o_progress_message">Cancel?</div>
                 <button class="btn btn-secondary btn-sm progress_cancel_yes" t-on-click="props.onCancelConfirmYes">Yes</button>
                 <button class="btn btn-secondary btn-sm progress_cancel_no" t-on-click="props.onCancelConfirmNo">No</button>
             </t>

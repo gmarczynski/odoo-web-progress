@@ -28,8 +28,8 @@ msgstr "Import Bazy"
 #. module: web_progress
 #. odoo-javascript
 #: code:addons/web_progress/static/src/xml/progress_bar.xml:0
-msgid "Cancel ongoing operation?"
-msgstr "Anulować bieżącą operację?"
+msgid "Cancel?"
+msgstr "Anulować?"
 
 #. module: web_progress
 #. odoo-javascript

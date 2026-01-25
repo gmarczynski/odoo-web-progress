@@ -69,18 +69,16 @@ const originalRpc = rpc._rpc;
 
 // Override the internal _rpc function to add progress code support
 rpc._rpc = function (url, params = {}, settings = {}) {
-    // Add progress code if not already present
-    if (!settings.progress_code) {
-        settings.progress_code = pseudoUuid();
-    }
+    // Generate progress code
+    const progressCode = pseudoUuid();
 
     // Find and update context with progress code
     var context = findContext(params);
     if (context) {
-        context.progress_code = settings.progress_code;
+        context.progress_code = progressCode;
     }
 
-    // Call the original RPC function
+    // Call the original RPC function (don't modify settings - Odoo 19 validates them strictly)
     return originalRpc.call(this, url, params, settings);
 };
 

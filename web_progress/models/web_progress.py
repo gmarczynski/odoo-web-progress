@@ -29,7 +29,7 @@ def json_dump(v):
     return json.dumps(v, separators=(',', ':'))
 
 
-class CancelledProgress(models.UserError):
+class CancelledProgress(UserError):
     # exception used to cancel the execution
     pass
 
