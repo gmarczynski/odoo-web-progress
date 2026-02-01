@@ -3,6 +3,7 @@ from odoo import models, api, fields, _
 import logging
 
 _logger = logging.getLogger(__name__)
+MIN_PROGRESS_ITER = 5  # min size of recordset to show progress when auto-iterate with progress_iter=True in context
 
 
 class GeneratorWithLenIndexable(object):
@@ -121,7 +122,7 @@ class Base(models.AbstractModel):
         """
         Add progress report to recordset iteration when progress_iter is in the context
         """
-        if self.env.context.get('progress_iter'):
+        if self.env.context.get('progress_iter') and len(self) > MIN_PROGRESS_ITER:
             self = self.with_context(progress_iter=False)
             return self.web_progress_iter(self, _("Iterating on model {}").format(self._description)).__iter__()
         else:

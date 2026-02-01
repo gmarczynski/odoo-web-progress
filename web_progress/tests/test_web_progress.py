@@ -1,5 +1,5 @@
 from odoo.tests import common, tagged
-from odoo import exceptions, api, registry
+from odoo import exceptions, api
 from odoo.tools import mute_logger
 from psycopg2 import ProgrammingError
 import uuid
@@ -73,7 +73,7 @@ class WebProgressTest(common.TransactionCase):
         """
         Checks that the current operation has been cancelled
         """
-        code = self.partner_ids._context.get('progress_code', None)
+        code = self.partner_ids.env.context.get('progress_code', None)
         self.assertIsNotNone(code, msg="Progress code shall be in the context")
         cancelled = self.web_progress_obj._check_cancelled(dict(code=code))
         self.assertTrue(cancelled, msg="Currect operation should have been cancelled")
