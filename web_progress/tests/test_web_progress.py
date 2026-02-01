@@ -1,5 +1,6 @@
 from odoo.tests import common, tagged
 from odoo import exceptions, api
+from odoo.modules.registry import Registry
 from odoo.tools import mute_logger
 from psycopg2 import ProgrammingError
 import uuid
@@ -132,7 +133,7 @@ class WebProgressTestAllProgress(common.TransactionCase):
         progress_code = str(uuid.uuid4())
         partner_obj = self.env['res.partner'].with_context(progress_code=progress_code)
         partner_obj.web_progress_percent(0, "Start")
-        with registry(self.env.cr.dbname).cursor() as new_cr:
+        with Registry(self.env.cr.dbname).cursor() as new_cr:
             # Create a new environment with a new cursor
             new_env = api.Environment(new_cr, self.env.uid, self.env.context)
             progress_obj = self.env['web.progress'].with_env(new_env)
