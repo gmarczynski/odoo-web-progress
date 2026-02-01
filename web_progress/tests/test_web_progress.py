@@ -1,13 +1,16 @@
+# Part of web_progress. See LICENSE file for full copyright and licensing details.
+"""
+Integration tests for web.progress functionality
+"""
 from odoo.tests import common, tagged
 from odoo import exceptions, api
 from odoo.modules.registry import Registry
 from odoo.tools import mute_logger
 from psycopg2 import ProgrammingError
 import uuid
-import logging
-from ..models.web_progress import last_report_time
 
-_logger = logging.getLogger(__name__)
+from ..models.web_progress import last_report_time
+from .common import cleanup_global_progress_state
 
 
 @tagged('at_install', '-post_install')
@@ -46,7 +49,7 @@ class WebProgressTest(common.TransactionCase):
         if total == len(self.partner_ids):
             self.assertEqual(progress_iter.ids, self.partner_ids.ids, msg="Attributes shall be accessible")
         count = 0
-        for idx, partner_id in zip(range(total),progress_iter):
+        for idx, partner_id in zip(range(total), progress_iter):
             self.assertEqual(partner_id.name, self.partner_vals[idx]['name'].format(idx), msg="Wrong name")
             self.assertEqual(partner_id.email, self.partner_vals[idx]['email'].format(idx), msg="Wrong email")
             count += 1
@@ -59,15 +62,10 @@ class WebProgressTest(common.TransactionCase):
         Iterate recordsets of different lengths
         :param recur_level: recursion level of iterations
         """
-        # iterate all partners
         self._check_web_progress_iter_recordset(len(self.partner_ids), recur_level)
-        # iterate half of all partners
-        self._check_web_progress_iter_recordset(round(len(self.partner_ids)/2), recur_level)
-        # iterate again all partners (no recursion)
+        self._check_web_progress_iter_recordset(round(len(self.partner_ids) / 2), recur_level)
         self._check_web_progress_iter_recordset(len(self.partner_ids))
-        # iterate one partner
         self._check_web_progress_iter_recordset(1, recur_level)
-        # iterate empty recordset
         self._check_web_progress_iter_recordset(0, recur_level)
 
     def _check_web_progress_cancelled(self):
@@ -104,7 +102,6 @@ class WebProgressTest(common.TransactionCase):
         self._check_web_progress_iter_recordset_many(0)
         self.partner_ids.web_progress_cancel()
         self._check_web_progress_cancelled()
-        # any further iteration shall raise UserError
         with self.assertRaises(exceptions.UserError, msg="Exception UserErro shall have been raised"):
             self._check_web_progress_iter_recordset_many(0)
         self._check_web_progress_cancelled()
@@ -134,14 +131,13 @@ class WebProgressTestAllProgress(common.TransactionCase):
         partner_obj = self.env['res.partner'].with_context(progress_code=progress_code)
         partner_obj.web_progress_percent(0, "Start")
         with Registry(self.env.cr.dbname).cursor() as new_cr:
-            # Create a new environment with a new cursor
             new_env = api.Environment(new_cr, self.env.uid, self.env.context)
             progress_obj = self.env['web.progress'].with_env(new_env)
             res = progress_obj.get_all_progress()
             self.assertEqual(res, [{'code': progress_code}])
             res = progress_obj.get_all_progress(0)
             self.assertEqual(res, [])
-            with self.assertRaises(ProgrammingError) as e:
+            with self.assertRaises(ProgrammingError):
                 progress_obj.get_all_progress("0 SECOND' GROUP BY code; "
                                               "SELECT code, array_agg(state) FROM web_progress "
                                               "WHERE create_date > timezone('utc', now()) - INTERVAL '10")
