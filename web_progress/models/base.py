@@ -1,8 +1,9 @@
 # Part of web_progress. See LICENSE file for full copyright and licensing details.
-from odoo import models, api, registry, fields, _
+from odoo import models, api, fields, _
 import logging
 
 _logger = logging.getLogger(__name__)
+MIN_PROGRESS_ITER = 5  # min size of recordset to show progress when auto-iterate with progress_iter=True in context
 
 
 class GeneratorWithLenIndexable(object):
@@ -109,7 +110,7 @@ class Base(models.AbstractModel):
         :param code:
         """
         if code is None:
-            code = self._context.get('progress_code', None)
+            code = self.env.context.get('progress_code', None)
         if code is not None:
             self.env['web.progress'].cancel_progress(code)
 
@@ -121,7 +122,7 @@ class Base(models.AbstractModel):
         """
         Add progress report to recordset iteration when progress_iter is in the context
         """
-        if self._context.get('progress_iter'):
+        if self.env.context.get('progress_iter') and len(self) > MIN_PROGRESS_ITER:
             self = self.with_context(progress_iter=False)
             return self.web_progress_iter(self, _("Iterating on model {}").format(self._description)).__iter__()
         else:
@@ -134,8 +135,8 @@ class Base(models.AbstractModel):
         It adds progress reporting to all standard imports and additionally makes them cancellable
         """
         extracted = super(Base, self)._extract_records(fields_, data, log=log, limit=limit)
-        if 'progress_code' in self._context:
-            total = min(limit, len(data) - len(self._context.get('skip_records', [])))
+        if 'progress_code' in self.env.context:
+            total = min(limit, len(data) - len(self.env.context.get('skip_records', [])))
             return self.web_progress_iter(extracted, _("importing to {}").
                                           format(self._description.lower()), total=total, cancellable=True,
                                           log_level="info")
@@ -146,7 +147,7 @@ class Base(models.AbstractModel):
         """
         Add progress reporting to base export (on batch-level)
         """
-        if _is_toplevel_call and 'progress_code' in self._context:
+        if _is_toplevel_call and 'progress_code' in self.env.context:
             def splittor(rs):
                 """ Splits the self recordset in batches of 1000 (to avoid
                 entire-recordset-prefetch-effects) & removes the previous batch

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Override BlockUI template to include progress bar -->
+    <t t-name="web.BlockUI" t-inherit="web.BlockUI" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('o_message')]" position="before">
+            <t t-if="hasProgress">
+                <div class="o_web_progress_blockui_progress">
+                    <ProgressBar code="state.progressCode" systray="false"/>
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//div[hasclass('o_message')]" position="attributes">
+            <attribute name="t-if">!hasProgress</attribute>
+        </xpath>
+    </t>
+
+</templates>

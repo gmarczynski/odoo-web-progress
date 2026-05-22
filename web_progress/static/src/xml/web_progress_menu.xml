@@ -7,7 +7,7 @@
                 <button class="btn dropdown-toggle o-no-caret o-dropdown--narrow"
                         type="button"
                         title="Progress">
-                    <i t-att-class="'fa fa-refresh' + (hasProgressBars ? ' fa-spin' : '')"/>
+                    <i t-att-class="'fa fa-spinner' + (hasProgressBars ? ' fa-pulse' : '')"/>
                     <span t-if="hasProgressBars"
                           class="o_notification_counter badge rounded-pill"
                           t-esc="state.progressCounter"/>

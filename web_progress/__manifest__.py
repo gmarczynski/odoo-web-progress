@@ -21,7 +21,7 @@
     'category': 'Productivity',
     'website': 'https://github.com/gmarczynski/odoo-web-progress',
 
-    'version': '18.0.3.1',
+    'version': '19.0.3.2',
 
     'depends': ['web',
                 'bus',
@@ -37,6 +37,7 @@
             # Templates
             'web_progress/static/src/xml/progress_bar.xml',
             'web_progress/static/src/xml/web_progress_menu.xml',
+            'web_progress/static/src/xml/block_ui.xml',
 
             # Styles
             'web_progress/static/src/scss/views.scss',

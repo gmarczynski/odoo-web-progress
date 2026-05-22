@@ -18,15 +18,19 @@ function _download(options) {
         if (options.data.context) {
             // reports
             data = {'context': JSON.parse(options.data.context)};
-            data.context.progress_code = pseudoUuid();
-            options.data.context = JSON.stringify(data.context);
+            if (!data.context?.progress_code) {
+                data.context.progress_code = pseudoUuid();
+                options.data.context = JSON.stringify(data.context);
+            }
         } else if (options.data.data) {
             // export
             data = JSON.parse(options.data.data);
-            data.context.progress_code = pseudoUuid();
-            options.data.data = JSON.stringify(data);
+            if (!data.context?.progress_code) {
+                data.context.progress_code = pseudoUuid();
+                options.data.data = JSON.stringify(data);
+            }
         }
-        if (data.context) {
+        if (data.context && data.context.progress_code) {
             // block UI
             BlockUI.props.bus.trigger("BLOCK", {
                 progressCode: data.context.progress_code,
@@ -69,18 +73,14 @@ const originalRpc = rpc._rpc;
 
 // Override the internal _rpc function to add progress code support
 rpc._rpc = function (url, params = {}, settings = {}) {
-    // Add progress code if not already present
-    if (!settings.progress_code) {
-        settings.progress_code = pseudoUuid();
-    }
-
     // Find and update context with progress code
     var context = findContext(params);
-    if (context) {
-        context.progress_code = settings.progress_code;
+    if (context && !context?.progress_code) {
+        // Generate progress code
+        context.progress_code =  pseudoUuid();
     }
 
-    // Call the original RPC function
+    // Call the original RPC function (don't modify settings - Odoo 19 validates them strictly)
     return originalRpc.call(this, url, params, settings);
 };
 

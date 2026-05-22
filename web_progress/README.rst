@@ -12,7 +12,7 @@ Progress bar for Odoo waiting screen, possibility to cancel an ongoing operation
         :align: center
 
 
-**web_progress** is compatible with Odoo 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0 (CE and EE).
+**web_progress** is compatible with Odoo 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0 (CE and EE).
 
 Author: Grzegorz Marczyński
 
@@ -104,6 +104,11 @@ Both methods accept parameters: `msg`, `total`, `cancellable`, and `log_level`.
 
 Release Notes
 -------------
+
+3.2 - 2026-02-01
+
+- Port to Odoo 19.0
+- Fixes to progress in reports
 
 3.1 - 2025-09-07
 

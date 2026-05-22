@@ -4,8 +4,6 @@ import {registry} from "@web/core/registry";
 import { rpc, rpcBus } from "@web/core/network/rpc";
 import { user } from "@web/core/user";
 
-const UI_BLOCK_TIMEOUT = 1000; // 1 second before showing UI block
-
 const progressService = {
     dependencies: ["bus_service", "orm", "ui"],
     start(env, {bus_service, orm, ui}) {
@@ -16,7 +14,6 @@ const progressService = {
         // Initialize state
         const state = {
             progressBars: {},
-            blockTimeouts: {},
             uiBlocked: false,
             blockUIProgressCode: null,
             progressCache: {}, // Cache for progress data
@@ -29,22 +26,47 @@ const progressService = {
 
         const channel = 'web_progress';
 
+        /**
+         * Extract progress_code from RPC params context
+         */
+        function getProgressCodeFromParams(params) {
+            if (!params) return null;
+            // Check kwargs.context first (ORM calls)
+            if (params.kwargs?.context?.progress_code) {
+                return params.kwargs.context.progress_code;
+            }
+            // Check direct context (other calls)
+            if (params.context?.progress_code) {
+                return params.context.progress_code;
+            }
+            // Check args (last argument might be context)
+            if (params.args?.length > 0) {
+                const lastArg = params.args[params.args.length - 1];
+                if (lastArg?.progress_code) {
+                    return lastArg.progress_code;
+                }
+            }
+            return null;
+        }
+
         // Monitor RPC requests
         rpcBus.addEventListener("RPC:REQUEST", (ev) => {
             const {data, url, settings} = ev.detail;
             const params = data.params;
-            if (settings.progress_code &&
-                validateCall(url, data.method, params, settings)) {
-                env.bus.trigger('web_progress_request', settings.progress_code);
-                startProgressTracking(settings.progress_code);
+            const progressCode = getProgressCodeFromParams(params);
+            if (progressCode && validateCall(url, data.method, params, settings)) {
+                env.bus.trigger('web_progress_request', progressCode);
+                startProgressTracking(progressCode);
             }
         });
 
         rpcBus.addEventListener("RPC:RESPONSE", (ev) => {
             const {data, error, settings} = ev.detail;
-            if (settings.progress_code) {
-                env.bus.trigger('web_progress_response', settings.progress_code);
-                clearProgressTracking(settings.progress_code);
+            const params = data.params;
+            const progressCode = getProgressCodeFromParams(params);
+            if (progressCode) {
+                env.bus.trigger('web_progress_response', progressCode);
+                clearProgressTracking(progressCode);
             }
         });
 
@@ -52,38 +74,15 @@ const progressService = {
          * Start tracking a progress code for potential UI blocking
          */
         function startProgressTracking(code) {
-            // Clear any existing timeout
-            if (state.blockTimeouts[code]) {
-                clearTimeout(state.blockTimeouts[code]);
-            }
-
-            // Set a new timeout for UI blocking
-            state.blockTimeouts[code] = setTimeout(async () => {
-                // Only block if we have a progress entry and it's ongoing
-                let progressBar = findProgressBar(code);
-
-                // If no progress bar found and we haven't received bus data,
-                // query recent operations to make sure we have latest data
-                if (!progressBar && !state.hasReceivedBusData) {
-                    await queryRecentOperations();
-                    // Check again after querying
-                    progressBar = findProgressBar(code);
-                }
-
-                if (progressBar) {
-                    blockUI(code);
-                }
-                delete state.blockTimeouts[code];
-            }, UI_BLOCK_TIMEOUT);
+            state.blockUIProgressCode = code;
         }
 
         /**
          * Clear progress tracking timeout for a specific code
          */
         function clearProgressTracking(code) {
-            if (state.blockTimeouts[code]) {
-                clearTimeout(state.blockTimeouts[code]);
-                delete state.blockTimeouts[code];
+            if (state.blockUIProgressCode === code) {
+                unblockUI();
             }
         }
 
@@ -111,17 +110,9 @@ const progressService = {
             }
 
             state.uiBlocked = false;
-            const progressCode = state.blockUIProgressCode;
-            state.blockUIProgressCode = null;
 
             // Call Odoo's UI unblocking mechanism
             ui.unblock();
-
-            // Clear any related timeouts
-            if (progressCode && state.blockTimeouts[progressCode]) {
-                clearTimeout(state.blockTimeouts[progressCode]);
-                delete state.blockTimeouts[progressCode];
-            }
         }
 
 
@@ -151,17 +142,6 @@ const progressService = {
             if (state.progressBars[code]) {
                 delete state.progressBars[code];
                 env.bus.trigger('web_progress_destroy', code);
-            }
-
-            // If this was the code blocking the UI, unblock it
-            if (state.blockUIProgressCode === code) {
-                unblockUI();
-            }
-
-            // Clear any timeouts related to this code
-            if (state.blockTimeouts[code]) {
-                clearTimeout(state.blockTimeouts[code]);
-                delete state.blockTimeouts[code];
             }
         }
 
@@ -193,6 +173,10 @@ const progressService = {
 
             if (!progressBar && progressState === 'ongoing') {
                 addProgressBar(code);
+                // dynamic UI blocking when progress info arrives
+                if (state.blockUIProgressCode === code && !state.uiBlocked) {
+                    blockUI(code);
+                }
             }
 
             if (progressBar && (progressState === 'done' || progressState === 'cancel')) {
