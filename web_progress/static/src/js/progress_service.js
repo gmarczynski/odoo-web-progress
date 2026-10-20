@@ -3,6 +3,7 @@
 import {registry} from "@web/core/registry";
 import { rpc, rpcBus } from "@web/core/network/rpc";
 import { user } from "@web/core/user";
+import { WarningDialog } from "@web/core/errors/error_dialogs";
 
 const UI_BLOCK_TIMEOUT = 1000; // 1 second before showing UI block
 
@@ -517,6 +518,10 @@ function validateCall(url, method, params, settings) {
 registry.category("services").add("progressService", progressService);
 
 // register the same dialog for CancelledProgress as there is for UserError
+// registry.category("error_dialogs")
+//     .add("odoo.addons.web_progress.models.web_progress.CancelledProgress",
+//         registry.category("error_dialogs").get("odoo.exceptions.UserError"));
+
+// register the same dialog for CancelledProgress as there is for UserError
 registry.category("error_dialogs")
-    .add("odoo.addons.web_progress.models.web_progress.CancelledProgress",
-        registry.category("error_dialogs").get("odoo.exceptions.UserError"));
+.add("odoo.addons.web_progress.models.web_progress.CancelledProgress", WarningDialog);
